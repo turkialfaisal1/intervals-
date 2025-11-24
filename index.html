@@ -1,490 +1,864 @@
 <!DOCTYPE html>
 <html lang="ar">
+
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Flight Interval Tables</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Flight Interval Tables</title>
 
-  <!-- SheetJS: read CSV/XLSX -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js"></script>
-  <!-- ExcelJS: write XLSX with styles -->
-  <script src="https://cdn.jsdelivr.net/npm/exceljs/dist/exceljs.min.js"></script>
+    <!-- SheetJS: read CSV/XLSX -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js"></script>
+    <!-- ExcelJS: write XLSX with styles -->
+    <script src="https://cdn.jsdelivr.net/npm/exceljs/dist/exceljs.min.js"></script>
 
-  <style>
-    body{
-      margin:0; padding:24px;
-      font-family: system-ui, -apple-system, Segoe UI, Arial;
-      background:#0b1220; color:#e6eefc;
-    }
-    h2{margin:18px 0 8px; font-weight:800;}
-    .card{
-      background:#0f172a; border:1px solid #1f2a44;
-      border-radius:14px; padding:16px; margin-top:14px;
-      box-shadow:0 10px 30px rgba(0,0,0,.25);
-    }
-    .row{display:flex; gap:12px; flex-wrap:wrap; align-items:end;}
-    .row > *{flex:1; min-width:160px;}
-    label{font-size:13px; opacity:.9; margin-bottom:6px; display:block;}
-    select, input[type=file], button{
-      width:100%; padding:10px 12px; border-radius:10px;
-      border:1px solid #2a3a5d; background:#0b1220; color:#e6eefc;
-      font-weight:600; outline:none;
-    }
-    button{
-      cursor:pointer; background:#1e293b; border-color:#334155;
-      transition:.15s;
-    }
-    button:hover{transform:translateY(-1px); background:#24324a;}
+    <style>
+        body {
+            margin: 0;
+            padding: 24px;
+            font-family: system-ui, -apple-system, Segoe UI, Arial;
+            background: #0b1220;
+            color: #e6eefc;
+        }
 
-    /* Buttons layout */
-    #genBtn{ width:100%; } /* full width */
-    .download-wrap{
-      display:flex; justify-content:center; margin-top:10px;
-    }
-    #downloadBtn{
-      width:220px; background:#22c55e; border-color:#16a34a; color:#001b08;
-      font-weight:800;
-    }
-    #downloadBtn:hover{ background:#2dd16a; }
+        h2 {
+            margin: 18px 0 8px;
+            font-weight: 800;
+        }
 
-    table{
-      width:100%; border-collapse:separate; border-spacing:0;
-      font-size:14px; overflow:hidden; border-radius:12px;
-      border:1px solid #1f2a44; margin-top:10px;
-    }
-    thead th{
-      background:#111a33; color:#eaf1ff;
-      padding:8px; border-bottom:1px solid #1f2a44; font-weight:800;
-    }
-    tbody td, tbody th{
-      padding:7px 8px; text-align:center;
-      border-bottom:1px solid #14203c; border-right:1px solid #14203c;
-      color:#0b1220; font-weight:700; background:#e8f5e9;
-    }
-    tbody tr:last-child td, tbody tr:last-child th{border-bottom:none;}
-    tbody td:last-child, thead th:last-child{border-right:none;}
-    tbody th{
-      background:#0e1730; color:#eaf1ff; font-weight:800;
-      text-align:left; padding-left:10px; position:sticky; left:0;
-    }
-    .nodata{padding:12px; opacity:.8; color:#ccc;}
-  </style>
+        .card {
+            background: #0f172a;
+            border: 1px solid #1f2a44;
+            border-radius: 14px;
+            padding: 16px;
+            margin-top: 14px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .25);
+        }
+
+        .row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: end;
+        }
+
+        .row>* {
+            flex: 1;
+            min-width: 160px;
+        }
+
+        label {
+            font-size: 13px;
+            opacity: .9;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        input[type=file],
+        button {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid #2a3a5d;
+            background: #0b1220;
+            color: #e6eefc;
+            font-weight: 600;
+            outline: none;
+        }
+
+        button {
+            cursor: pointer;
+            background: #1e293b;
+            border-color: #334155;
+            transition: .15s;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            background: #24324a;
+        }
+
+        #genBtn {
+            width: 100%;
+        }
+
+        .download-wrap {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        #downloadBtn {
+            width: 220px;
+            background: #22c55e;
+            border-color: #16a34a;
+            color: #001b08;
+            font-weight: 800;
+        }
+
+        #downloadBtn:hover {
+            background: #2dd16a;
+        }
+
+        /* ===========================
+    DROPDOWN MULTI-SELECT
+=========================== */
+        .ms-dropdown {
+            position: relative;
+            width: 100%;
+        }
+
+        .ms-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid #2a3a5d;
+            background: #0b1220;
+            color: #e6eefc;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .ms-btn .ms-label {
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 85%;
+        }
+
+        .ms-btn .ms-caret {
+            opacity: .8;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+
+        .ms-panel {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            right: 0;
+            background: #0b1220;
+            border: 1px solid #2a3a5d;
+            border-radius: 10px;
+            padding: 8px;
+            z-index: 999;
+            display: none;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, .35);
+        }
+
+        .ms-panel.open {
+            display: block;
+        }
+
+        .ms-search {
+            width: 90%;
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid #2a3a5d;
+            background: #0f172a;
+            color: #e6eefc;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .ms-list {
+            max-height: 150px;
+            overflow: auto;
+            padding-right: 4px;
+        }
+
+        .ms-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 4px;
+            border-radius: 6px;
+        }
+
+        .ms-item:hover {
+            background: #111a33;
+        }
+
+        .ms-item input {
+            width: 16px;
+            height: 16px;
+            accent-color: #22c55e;
+        }
+
+        .ms-item span {
+            font-size: 14px;
+            color: #e6eefc;
+        }
+
+        /* ===========================
+    TABLES
+=========================== */
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 14px;
+            overflow: hidden;
+            border-radius: 12px;
+            border: 1px solid #1f2a44;
+            margin-top: 10px;
+        }
+
+        thead th {
+            background: #111a33;
+            color: #eaf1ff;
+            padding: 8px;
+            border-bottom: 1px solid #1f2a44;
+            font-weight: 800;
+        }
+
+        tbody td,
+        tbody th {
+            padding: 7px 8px;
+            text-align: center;
+            border-bottom: 1px solid #14203c;
+            border-right: 1px solid #14203c;
+            color: #0b1220;
+            font-weight: 700;
+            background: #e8f5e9;
+        }
+
+        tbody tr:last-child td,
+        tbody tr:last-child th {
+            border-bottom: none;
+        }
+
+        tbody td:last-child,
+        thead th:last-child {
+            border-right: none;
+        }
+
+        tbody th {
+            background: #0e1730;
+            color: #eaf1ff;
+            font-weight: 800;
+            text-align: left;
+            padding-left: 10px;
+            position: sticky;
+            left: 0;
+        }
+
+        .nodata {
+            padding: 12px;
+            opacity: .8;
+            color: #ccc;
+        }
+    </style>
 </head>
 
 <body>
 
-  <h2>Flight Interval Generator</h2>
+    <h2>Flight Interval Generator</h2>
 
-  <div class="card">
-    <div class="row">
-      <div>
-        <label>Upload CSV / Excel</label>
-        <input id="fileInput" type="file" accept=".csv,.xlsx,.xls"/>
-      </div>
+    <div class="card">
+        <div class="row">
+            <div>
+                <label>Upload CSV / Excel</label>
+                <input id="fileInput" type="file" accept=".csv,.xlsx,.xls" />
+            </div>
+        </div>
+
+        <div class="row" style="margin-top:12px;">
+            <div>
+                <label>Station</label>
+                <div id="stationDD" class="ms-dropdown"></div>
+            </div>
+            <div>
+                <label>Serviced By</label>
+                <div id="servicedDD" class="ms-dropdown"></div>
+            </div>
+            <div>
+                <label>Month </label>
+                <div id="monthDD" class="ms-dropdown"></div>
+            </div>
+            <div>
+                <label>Airline </label>
+                <div id="airlineDD" class="ms-dropdown"></div>
+            </div>
+        </div>
+
+        <div class="row" style="margin-top:12px;">
+            <button id="genBtn" disabled>Generate Tables</button>
+        </div>
+
+        <div class="download-wrap">
+            <button id="downloadBtn" disabled>Download Excel</button>
+        </div>
     </div>
 
-    <div class="row" style="margin-top:12px;">
-      <div>
-        <label>Station</label>
-        <select id="stationFilter"></select>
-      </div>
-      <div>
-        <label>Serviced By</label>
-        <select id="servicedFilter"></select>
-      </div>
-      <div>
-        <label>Month</label>
-        <select id="monthFilter"></select>
-      </div>
+    <div class="card">
+        <h2>Arrivals (A)</h2>
+        <div id="tblA"></div>
+        <div id="miniA"></div>
     </div>
 
-    <div class="row" style="margin-top:12px;">
-      <button id="genBtn" disabled>Generate Tables</button>
+    <div class="card">
+        <h2>Departures (D)</h2>
+        <div id="tblD"></div>
+        <div id="miniD"></div>
     </div>
 
-    <div class="download-wrap">
-      <button id="downloadBtn" disabled>Download Excel</button>
+    <div class="card">
+        <h2>All Flights (A + D)</h2>
+        <div id="tblAll"></div>
+        <div id="miniAll"></div>
     </div>
-  </div>
 
-  <div class="card">
-    <h2 style="margin-top:0;">Arrivals (A)</h2>
-    <div id="tblA"></div>
-  </div>
+    <script>
+        /*******************************************************
+          GLOBALS + HELPERS
+        ********************************************************/
+        let rows = [];
+        let finalA = null;
+        let finalD = null;
+        let finalAll = null;
 
-  <div class="card">
-    <h2 style="margin-top:0;">Departures (D)</h2>
-    <div id="tblD"></div>
-  </div>
+        const HOURS = [...Array(24).keys()];
+        const clean = x => (x ?? "").toString().trim();
+        const upper = x => clean(x).toUpperCase();
+        const HEAT = ["#d1fae5", "#86efac", "#4ade80", "#22c55e", "#15803d"];
 
-  <div class="card">
-    <h2 style="margin-top:0;">All Flights (A + D)</h2>
-    <div id="tblAll"></div>
-  </div>
+        function uniq(arr) { return [...new Set(arr.filter(v => v !== ""))].sort(); }
 
+        /*******************************************************
+          MULTI-SELECT DROPDOWN (Search + Clear)
+        ********************************************************/
+        function createMultiDropdown(containerId, placeholder) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = `
+    <button type="button" class="ms-btn">
+      <span class="ms-label">${placeholder}</span>
+      <span class="ms-caret">▾</span>
+    </button>
+    <div class="ms-panel">
+      <input class="ms-search" placeholder="Search..." />
+      <div class="ms-list"></div>
+    </div>
+  `;
 
-<script>
-/********************************************
- GLOBALS
-*********************************************/
-let rows = [];
-let finalA = null;
-let finalD = null;
-let finalAll = null;
+            const btn = container.querySelector(".ms-btn");
+            const label = container.querySelector(".ms-label");
+            const panel = container.querySelector(".ms-panel");
+            const search = container.querySelector(".ms-search");
+            const list = container.querySelector(".ms-list");
 
-const fileInput = document.getElementById("fileInput");
-const genBtn = document.getElementById("genBtn");
-const downloadBtn = document.getElementById("downloadBtn");
+            const state = { allItems: [], selected: new Set() };
 
-/********************************************
- UTIL
-*********************************************/
-const clean = x => (x ?? "").toString().trim();
-const upper = x => clean(x).toUpperCase();
-const HOURS = [...Array(24).keys()];
+            // Clear button
+            const clearBtn = document.createElement("div");
+            clearBtn.textContent = "Clear";
+            clearBtn.style.cssText = `
+    font-size: 12px;
+    color: #ff7070;
+    cursor: pointer;
+    font-weight: 700;
+    text-align: right;
+    margin-bottom: 6px;
+  `;
+            clearBtn.onclick = (e) => {
+                e.stopPropagation();
+                state.selected.clear();
+                updateLabel();
+                renderList();
+            };
+            panel.insertBefore(clearBtn, search);
 
-function uniq(arr){ return [...new Set(arr.filter(v=>v!==""))].sort(); }
-function fillSelect(id,list){
-  const el=document.getElementById(id);
-  el.innerHTML = `<option value="ALL">All</option>` +
-    list.map(v=>`<option value="${v}">${v}</option>`).join("");
-}
+            btn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                closeAllDropdowns();
+                panel.classList.toggle("open");
+                search.value = "";
+                renderList();
+                search.focus();
+            });
 
-/********************************************
- LOAD FILE
-*********************************************/
-fileInput.addEventListener("change", async e=>{
-  const file = e.target.files[0];
-  if(!file) return;
+            search.addEventListener("input", renderList);
 
-  const ext = file.name.split(".").pop().toLowerCase();
-  let data;
+            function renderList() {
+                const q = upper(search.value);
+                const shown = state.allItems.filter(x => upper(x).includes(q));
+                list.innerHTML = shown.map(item => {
+                    const checked = state.selected.has(item) ? "checked" : "";
+                    return `
+        <label class="ms-item">
+          <input type="checkbox" value="${item}" ${checked}/>
+          <span>${item}</span>
+        </label>
+      `;
+                }).join("");
 
-  if(ext==="csv"){
-    const text = await file.text();
-    data = csvToJson(text);
-  } else {
-    const buf = await file.arrayBuffer();
-    const wb = XLSX.read(buf, {type:"array"});
-    const sheet = wb.Sheets[wb.SheetNames[0]];
-    data = XLSX.utils.sheet_to_json(sheet, {defval:""});
-  }
+                list.querySelectorAll("input[type=checkbox]").forEach(cb => {
+                    cb.addEventListener("change", () => {
+                        if (cb.checked) state.selected.add(cb.value);
+                        else state.selected.delete(cb.value);
+                        updateLabel();
+                    });
+                });
+            }
 
-  rows = data.map(normalizeRow).filter(Boolean);
+            function updateLabel() {
+                const arr = [...state.selected];
+                if (arr.length === 0) label.textContent = placeholder;
+                else if (arr.length <= 2) label.textContent = arr.join(", ");
+                else label.textContent = `${arr.length} selected`;
+            }
 
-  populateFilters(rows);
-  genBtn.disabled = false;
-});
+            function setItems(items) {
+                state.allItems = items;
+                state.selected.clear();
+                updateLabel();
+            }
 
-function csvToJson(text){
-  const lines = text.split(/\r?\n/).filter(l=>l.trim()!=="");
-  const hdr = lines[0].split(",").map(h=>h.trim().replace(/\s+/g," "));
-  const out=[];
-  for(let i=1;i<lines.length;i++){
-    const parts = lines[i].split(",");
-    if(parts.length!==hdr.length) continue;
-    const obj={};
-    hdr.forEach((h,idx)=>obj[h]=parts[idx]||"");
-    out.push(obj);
-  }
-  return out;
-}
+            function getSelected() { return [...state.selected]; }
 
-function parseHour(t){
-  t = clean(t);
-  if(!t.includes(":")) return null;
-  const parts = t.split(" ");
-  let h = Number(parts[0].split(":")[0]);
-  if(Number.isNaN(h)) return null;
-  const ampm = upper(parts[1]||"");
-  if(ampm==="PM" && h!==12) h+=12;
-  if(ampm==="AM" && h===12) h=0;
-  return (h>=0 && h<=23) ? h : null;
-}
+            return { setItems, getSelected, close: () => panel.classList.remove("open") };
+        }
 
-function normalizeRow(r){
-  const Station = upper(r["Station"]);
-  const ServicedBy = upper(r["Serviced By"]);
-  const Month = upper(r["Month"]);
-  const AD = upper(r["A/D"]);
-  const Date = clean(r["Date"]);
+        let ddStation, ddServiced, ddMonth, ddAirline;
+        function closeAllDropdowns() {
+            [ddStation, ddServiced, ddMonth, ddAirline].forEach(dd => dd && dd.close());
+        }
+        document.addEventListener("click", closeAllDropdowns);
 
-  let hour = Number(r["Hour"]);
-  if(Number.isNaN(hour)) hour = parseHour(r["Time"]);
-  if(hour==null) return null;
+        /*******************************************************
+          LOAD FILE
+        ********************************************************/
+        document.getElementById("fileInput").addEventListener("change", async e => {
+            const file = e.target.files[0];
+            if (!file) return;
 
-  return {Date, Hour:hour, Station, ServicedBy, Month, AD};
-}
+            let data;
+            const ext = file.name.split(".").pop().toLowerCase();
 
-/********************************************
- FILTERS (NO A/D FILTER)
-*********************************************/
-function populateFilters(rows){
-  fillSelect("stationFilter", uniq(rows.map(r=>r.Station)));
-  fillSelect("servicedFilter", uniq(rows.map(r=>r.ServicedBy)));
-  fillSelect("monthFilter", uniq(rows.map(r=>r.Month)));
-}
+            if (ext === "csv") {
+                const text = await file.text();
+                data = csvToJson(text);
+            } else {
+                const buf = await file.arrayBuffer();
+                const wb = XLSX.read(buf, { type: "array" });
+                const sheet = wb.Sheets[wb.SheetNames[0]];
+                data = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+            }
 
-function applyFiltersBase(all){
-  const fST = upper(document.getElementById("stationFilter").value);
-  const fSV = upper(document.getElementById("servicedFilter").value);
-  const fMO = upper(document.getElementById("monthFilter").value);
+            rows = data.map(normalizeRow).filter(Boolean);
 
-  return all.filter(r=>{
-    if(fST!=="ALL" && r.Station!==fST) return false;
-    if(fSV!=="ALL" && r.ServicedBy!==fSV) return false;
-    if(fMO!=="ALL" && r.Month!==fMO) return false;
-    return true;
-  });
-}
+            populateFilters(rows);
+            document.getElementById("genBtn").disabled = false;
+        });
 
-/********************************************
- CORE LOGIC:
- Pivot(Date x Hour count)
- Row0 = max per hour across dates
- Row2..5 = rolling sums from Row0 only
-*********************************************/
-function buildPivotMatrix(filtered){
-  const m = new Map();
-  for(const r of filtered){
-    if(!m.has(r.Date)) m.set(r.Date, Array(24).fill(0));
-    m.get(r.Date)[r.Hour] += 1;
-  }
-  return Array.from(m.values());
-}
+        function csvToJson(txt) {
+            const lines = txt.split(/\r?\n/).filter(l => l.trim() !== "");
+            const hdr = lines[0].split(",").map(h => h.trim());
+            return lines.slice(1).map(l => {
+                const p = l.split(",");
+                const obj = {};
+                hdr.forEach((h, i) => obj[h] = p[i] || "");
+                return obj;
+            });
+        }
 
-function colMax(matrix){
-  const out = Array(24).fill(0);
-  for(const row of matrix){
-    for(let h=0; h<24; h++){
-      if(row[h] > out[h]) out[h]=row[h];
-    }
-  }
-  return out;
-}
+        function parseHour(t) {
+            t = clean(t);
+            if (!t.includes(":")) return null;
+            const parts = t.split(" ");
+            let h = Number(parts[0].split(":")[0]);
+            if (Number.isNaN(h)) return null;
+            const ampm = upper(parts[1] || "");
+            if (ampm === "PM" && h !== 12) h += 12;
+            if (ampm === "AM" && h === 12) h = 0;
+            return (h >= 0 && h <= 23) ? h : null;
+        }
 
-function rollingFromRow0(row0, window, dir="+"){
-  const res = Array(24).fill(0);
-  for(let h=0; h<24; h++){
-    let s=0;
-    for(let w=0; w<window; w++){
-      const idx = dir==="+" ? (h+w)%24 : (h-w+24)%24;
-      s += row0[idx];
-    }
-    res[h]=s;
-  }
-  return res;
-}
+        function normalizeRow(r) {
+            const Station = upper(r["Station"]);
+            const ServicedBy = upper(r["Serviced By"]);
+            const Month = upper(r["Month"]);
+            const AD = upper(r["A/D"]);
+            const Airline = upper(r["AirLine"] || r["Airline"] || "");
+            const Date = clean(r["Date"]);
 
-function buildIntervalTable(filtered, dir="+"){
-  if(filtered.length===0) return null;
-  const pivot = buildPivotMatrix(filtered);
-  const row0 = colMax(pivot);
+            let hour = Number(r["Hour"]);
+            if (Number.isNaN(hour)) hour = parseHour(r["Time"]);
+            if (hour == null) return null;
 
-  const rowsOut = [];
-  rowsOut.push(["Hour", ...row0]);
-  for(let win=2; win<=5; win++){
-    rowsOut.push([`${win} hrs`, ...rollingFromRow0(row0, win, dir)]);
-  }
+            return { Date, Hour: hour, Station, ServicedBy, Month, AD, Airline };
+        }
 
-  return { header: HOURS, rows: rowsOut };
-}
+        /*******************************************************
+          FILTERS
+        ********************************************************/
+        function populateFilters(rows) {
+            ddStation = createMultiDropdown("stationDD", "Select Station");
+            ddServiced = createMultiDropdown("servicedDD", "Select Serviced By");
+            ddMonth = createMultiDropdown("monthDD", "Select Month");
+            ddAirline = createMultiDropdown("airlineDD", "Select Airline");
 
-/********************************************
- HTML HEATMAP (5 FIXED COLORS)
-*********************************************/
-const HEAT_COLORS = ["#d1fae5","#86efac","#4ade80","#22c55e","#15803d"];
+            ddStation.setItems(uniq(rows.map(r => r.Station)));
+            ddServiced.setItems(uniq(rows.map(r => r.ServicedBy)));
+            ddMonth.setItems(uniq(rows.map(r => r.Month)));
+            ddAirline.setItems(uniq(rows.map(r => r.Airline)));
+        }
 
-function pickHeatColor(v,min,max){
-  if(max===min) return HEAT_COLORS[0];
-  const t = (v-min)/(max-min);
-  if(t===1) return HEAT_COLORS[4];
-  if(t>0.75) return HEAT_COLORS[3];
-  if(t>0.5) return HEAT_COLORS[2];
-  if(t>0.25) return HEAT_COLORS[1];
-  return HEAT_COLORS[0];
-}
+        function applyFilters(rows) {
+            const ST = ddStation.getSelected().map(upper);
+            const SV = ddServiced.getSelected().map(upper);
+            const MO = ddMonth.getSelected().map(upper);
+            const AI = ddAirline.getSelected().map(upper);
 
-function renderTable(containerId, table){
-  const el = document.getElementById(containerId);
-  if(!table){
-    el.innerHTML = `<div class="nodata">No Data</div>`;
-    return;
-  }
+            return rows.filter(r => {
+                if (ST.length > 0 && !ST.includes(r.Station)) return false;
+                if (SV.length > 0 && !SV.includes(r.ServicedBy)) return false;
+                if (MO.length > 0 && !MO.includes(r.Month)) return false;
+                if (AI.length > 0 && !AI.includes(r.Airline)) return false;
+                return true;
+            });
+        }
 
-  const values = table.rows.flatMap(r=>r.slice(1));
-  const minV = Math.min(...values);
-  const maxV = Math.max(...values);
+        /*******************************************************
+          INTERVAL TABLES
+        ********************************************************/
+        function buildPivot(filtered) {
+            const m = new Map();
+            for (const r of filtered) {
+                if (!m.has(r.Date)) m.set(r.Date, Array(24).fill(0));
+                m.get(r.Date)[r.Hour] += 1;
+            }
+            return [...m.values()];
+        }
 
-  let html = `<table><thead><tr><th>Intervals</th>`;
-  for(const h of table.header) html += `<th>${h}:00</th>`;
-  html += `</tr></thead><tbody>`;
+        function colMax(matrix) {
+            const out = Array(24).fill(0);
+            for (const row of matrix) {
+                for (let h = 0; h < 24; h++) {
+                    if (row[h] > out[h]) out[h] = row[h];
+                }
+            }
+            return out;
+        }
 
-  for(const r of table.rows){
-    html += `<tr><th>${r[0]}</th>`;
-    for(const v of r.slice(1)){
-      const bg = pickHeatColor(v,minV,maxV);
-      html += `<td style="background:${bg}; color:#000;">${v}</td>`;
-    }
-    html += `</tr>`;
-  }
+        function rolling(row0, window, dir = "+") {
+            const out = Array(24).fill(0);
+            for (let h = 0; h < 24; h++) {
+                let s = 0;
+                for (let w = 0; w < window; w++) {
+                    const idx = (dir === "+") ? (h + w) % 24 : (h - w + 24) % 24;
+                    s += row0[idx];
+                }
+                out[h] = s;
+            }
+            return out;
+        }
 
-  html += `</tbody></table>`;
-  el.innerHTML = html;
-}
+        function buildIntervalTable(filtered, dir = "+") {
+            if (filtered.length === 0) return null;
+            const pivot = buildPivot(filtered);
+            const row0 = colMax(pivot);
 
-/********************************************
- GENERATE 3 TABLES
-*********************************************/
-genBtn.addEventListener("click", ()=>{
-  const base = applyFiltersBase(rows);
+            const rows = [];
+            rows.push(["Hour", ...row0]);
+            for (let w = 2; w <= 5; w++) {
+                rows.push([`${w} hrs`, ...rolling(row0, w, dir)]);
+            }
 
-  const arr = base.filter(r=>r.AD==="A");
-  const dep = base.filter(r=>r.AD==="D");
-  const all = base;
+            return { header: HOURS, rows };
+        }
 
-  finalA = buildIntervalTable(arr, "+");
-  finalD = buildIntervalTable(dep, "-");
-  finalAll = buildIntervalTable(all, "+");
+        /*******************************************************
+          MINI SUMMARY (5 columns only: Hour..5hrs)
+          Ave/Max per ROW across 24 hours
+        ********************************************************/
+        function computeMini5(table) {
+            if (!table) return null;
 
-  renderTable("tblA", finalA);
-  renderTable("tblD", finalD);
-  renderTable("tblAll", finalAll);
+            // numericRows: 5 rows x 24 cols
+            const numericRows = table.rows.map(r => r.slice(1));
 
-  downloadBtn.disabled = false;
-});
+            const avg5 = numericRows.map(row => {
+                const s = row.reduce((a, b) => a + b, 0);
+                return Math.round(s / row.length);
+            });
 
-/********************************************
- EXCEL DOWNLOAD WITH STYLES
- Req:
-  - Header hours row fill #224A62
-  - Intervals cell fill #7EAB55
-  - First column labels blue w/ white text
-  - Heatmap 5 fixed greens
-  - Thick black border around table
-  - 3 sheets
-*********************************************/
-downloadBtn.addEventListener("click", async ()=>{
-  const wb = new ExcelJS.Workbook();
+            const max5 = numericRows.map(row => {
+                return Math.max(...row);
+            });
 
-  const sheets = [
-    { name:"Arrivals",  title:"Flight Interval arrival",   data:finalA },
-    { name:"Departures",title:"Flight Interval departure", data:finalD },
-    { name:"Total",     title:"Flight Interval total",     data:finalAll },
-  ];
+            return { avg5, max5 };
+        }
 
-  for(const sh of sheets){
-    const ws = wb.addWorksheet(sh.name);
-    const data = sh.data;
-    if(!data){
-      ws.addRow([sh.title]);
-      continue;
-    }
+        function renderMiniTable(containerId, table) {
+            const el = document.getElementById(containerId);
+            if (!table) { el.innerHTML = ""; return; }
 
-    // ---- Title row A1:Y1 merged ----
-    const lastCol = 1 + data.header.length; // A + 24 = 25 => Y
-    ws.mergeCells(1,1,1,lastCol);
-    const titleCell = ws.getCell(1,1);
-    titleCell.value = sh.title;
-    titleCell.alignment = {vertical:"middle", horizontal:"center"};
-    titleCell.font = {bold:true, size:14};
-    ws.getRow(1).height = 22;
+            const mini = computeMini5(table);
+            const headers = ["Hour", "2 HRS", "3 HRS", "4 HRS", "5 HRS"];
 
-    // ---- Header row (Intervals + hours) ----
-    ws.addRow(["Intervals", ...data.header.map(h=>`${h}:00`)]);
-    const headerRow = ws.getRow(2);
-    headerRow.height = 18;
+            el.innerHTML = `
+    <table style="margin-top:12px;">
+      <thead>
+        <tr style="background:#7EAB55; color:#000; font-weight:800;">
+          <th></th>
+          ${headers.map(h => `<th>${h}</th>`).join("")}
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="background:#d7ecf8;">
+          <th style="background:#d7ecf8; font-weight:800; color :#000">Ave Flights</th>
+          ${mini.avg5.map(v => `<td>${v}</td>`).join("")}
+        </tr>
+        <tr style="background:#d7ecf8;">
+          <th style="background:#d7ecf8; font-weight:800;color :#000">Max Flights</th>
+          ${mini.max5.map(v => `<td>${v}</td>`).join("")}
+        </tr>
+      </tbody>
+    </table>
+  `;
+        }
 
-    // style header hours
-    for(let c=2; c<=lastCol; c++){
-      const cell = headerRow.getCell(c);
-      cell.fill = {type:"pattern", pattern:"solid", fgColor:{argb:"FF224A62"}};
-      cell.font = {bold:true, color:{argb:"FFFFFFFF"}};
-      cell.alignment = {horizontal:"center", vertical:"middle"};
-    }
+        /*******************************************************
+          HEATMAP HTML RENDER
+        ********************************************************/
+        function pickColor(v, min, max) {
+            if (max === min) return HEAT[0];
+            const t = (v - min) / (max - min);
+            if (t === 1) return HEAT[4];
+            if (t > 0.75) return HEAT[3];
+            if (t > 0.5) return HEAT[2];
+            if (t > 0.25) return HEAT[1];
+            return HEAT[0];
+        }
 
-    // style "Intervals" header cell
-    const intervalsCell = headerRow.getCell(1);
-    intervalsCell.fill = {type:"pattern", pattern:"solid", fgColor:{argb:"FF7EAB55"}};
-    intervalsCell.font = {bold:true, color:{argb:"FF000000"}};
-    intervalsCell.alignment = {horizontal:"center", vertical:"middle"};
+        function renderTable(divId, table) {
+            const el = document.getElementById(divId);
+            if (!table) { el.innerHTML = `<div class="nodata">No Data</div>`; return; }
 
-    // ---- Data rows ----
-    data.rows.forEach(r=>ws.addRow(r));
+            const vals = table.rows.flatMap(r => r.slice(1));
+            const minV = Math.min(...vals);
+            const maxV = Math.max(...vals);
 
-    // find min/max for heat buckets
-    const nums = data.rows.flatMap(r=>r.slice(1));
-    const minV = Math.min(...nums);
-    const maxV = Math.max(...nums);
-    const colorsARGB = ["FFd1fae5","FF86efac","FF4ade80","FF22c55e","FF15803d"];
+            let html = `<table><thead><tr><th>Intervals</th>`;
+            for (const h of table.header) html += `<th>${h}:00</th>`;
+            html += `</tr></thead><tbody>`;
 
-    function pickExcelColor(v){
-      if(maxV===minV) return colorsARGB[0];
-      const t=(v-minV)/(maxV-minV);
-      if(t===1) return colorsARGB[4];
-      if(t>0.75) return colorsARGB[3];
-      if(t>0.5) return colorsARGB[2];
-      if(t>0.25) return colorsARGB[1];
-      return colorsARGB[0];
-    }
+            for (const r of table.rows) {
+                html += `<tr><th>${r[0]}</th>`;
+                for (const v of r.slice(1)) {
+                    const bg = pickColor(v, minV, maxV);
+                    html += `<td style="background:${bg}; color:#000;">${v}</td>`;
+                }
+                html += `</tr>`;
+            }
+            html += `</tbody></table>`;
+            el.innerHTML = html;
+        }
 
-    // style first column labels (A3:A7)
-    for(let r=3; r<=2+data.rows.length; r++){
-      const cell = ws.getCell(r,1);
-      cell.fill = {type:"pattern", pattern:"solid", fgColor:{argb:"FF224A62"}};
-      cell.font = {bold:true, color:{argb:"FFFFFFFF"}};
-      cell.alignment = {horizontal:"center", vertical:"middle"};
-    }
+        /*******************************************************
+          GENERATE BUTTON
+        ********************************************************/
+        document.getElementById("genBtn").addEventListener("click", () => {
+            const base = applyFilters(rows);
 
-    // style heatmap cells (B3:Y7)
-    for(let r=3; r<=2+data.rows.length; r++){
-      for(let c=2; c<=lastCol; c++){
-        const cell = ws.getCell(r,c);
-        const v = Number(cell.value)||0;
-        const bg = pickExcelColor(v);
-        cell.fill = {type:"pattern", pattern:"solid", fgColor:{argb:bg}};
-        cell.font = {bold:true, color:{argb:"FF000000"}};
-        cell.alignment = {horizontal:"center", vertical:"middle"};
-      }
-    }
+            const arr = base.filter(r => r.AD === "A");
+            const dep = base.filter(r => r.AD === "D");
 
-    // borders: thin inside, thick outside
-    const top = 2, left = 1;
-    const bottom = 2 + data.rows.length;
-    const right = lastCol;
+            finalA = buildIntervalTable(arr, "+");
+            finalD = buildIntervalTable(dep, "-");
+            finalAll = buildIntervalTable(base, "+");
 
-    for(let r=top; r<=bottom; r++){
-      for(let c=left; c<=right; c++){
-        const cell = ws.getCell(r,c);
-        const isTop = r===top, isBottom=r===bottom;
-        const isLeft = c===left, isRight=c===right;
+            renderTable("tblA", finalA);
+            renderTable("tblD", finalD);
+            renderTable("tblAll", finalAll);
 
-        cell.border = {
-          top:    {style: isTop ? "medium" : "thin",  color:{argb:"FF000000"}},
-          bottom: {style: isBottom?"medium":"thin",  color:{argb:"FF000000"}},
-          left:   {style: isLeft?"medium":"thin",    color:{argb:"FF000000"}},
-          right:  {style: isRight?"medium":"thin",   color:{argb:"FF000000"}},
-        };
-      }
-    }
+            renderMiniTable("miniA", finalA);
+            renderMiniTable("miniD", finalD);
+            renderMiniTable("miniAll", finalAll);
 
-    // column widths
-    ws.getColumn(1).width = 12;
-    for(let c=2; c<=lastCol; c++) ws.getColumn(c).width = 6;
-  }
+            document.getElementById("downloadBtn").disabled = false;
+        });
 
-  const buf = await wb.xlsx.writeBuffer();
-  const blob = new Blob([buf],{
-    type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-  });
-  const url = URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url;
-  a.download="Flight_Intervals.xlsx";
-  a.click();
-  URL.revokeObjectURL(url);
-});
-</script>
+        /*******************************************************
+          DOWNLOAD EXCEL (3 SHEETS + MINI TABLE 5 cols)
+        ********************************************************/
+        document.getElementById("downloadBtn").addEventListener("click", async () => {
+
+            const wb = new ExcelJS.Workbook();
+
+            const sheets = [
+                { name: "Arrivals", title: "Flight Interval arrival", data: finalA },
+                { name: "Departures", title: "Flight Interval departure", data: finalD },
+                { name: "Total", title: "Flight Interval total", data: finalAll },
+            ];
+
+            for (const sh of sheets) {
+                const ws = wb.addWorksheet(sh.name);
+                const data = sh.data;
+
+                if (!data) {
+                    ws.addRow([sh.title]);
+                    continue;
+                }
+
+                const lastCol = 1 + data.header.length; // 25
+
+                // Title
+                ws.mergeCells(1, 1, 1, lastCol);
+                const t = ws.getCell(1, 1);
+                t.value = sh.title;
+                t.font = { bold: true, size: 14 };
+                t.alignment = { vertical: "middle", horizontal: "center" };
+                ws.getRow(1).height = 22;
+
+                // Header
+                ws.addRow(["Intervals", ...data.header.map(h => `${h}:00`)]);
+                const hdr = ws.getRow(2);
+
+                for (let c = 2; c <= lastCol; c++) {
+                    const cell = hdr.getCell(c);
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF224A62' } };
+                    cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+                    cell.alignment = { vertical: "middle", horizontal: "center" };
+                }
+                const cellInt = hdr.getCell(1);
+                cellInt.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF7EAB55' } };
+                cellInt.font = { bold: true, color: { argb: 'FF000000' } };
+                cellInt.alignment = { vertical: "middle", horizontal: "center" };
+
+                // Data rows
+                data.rows.forEach(r => ws.addRow(r));
+
+                // Heat colors
+                const nums = data.rows.flatMap(r => r.slice(1));
+                const minV = Math.min(...nums);
+                const maxV = Math.max(...nums);
+                const C = ["FFd1fae5", "FF86efac", "FF4ade80", "FF22c55e", "FF15803d"];
+
+                function excelColor(v) {
+                    if (maxV === minV) return C[0];
+                    const t = (v - minV) / (maxV - minV);
+                    if (t === 1) return C[4];
+                    if (t > 0.75) return C[3];
+                    if (t > 0.5) return C[2];
+                    if (t > 0.25) return C[1];
+                    return C[0];
+                }
+
+                // Style first column labels (Intervals)
+                for (let r = 3; r <= 2 + data.rows.length; r++) {
+                    const cell = ws.getCell(r, 1);
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF224A62' } };
+                    cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+                    cell.alignment = { vertical: "middle", horizontal: "center" };
+                }
+
+                // Style heatmap cells
+                for (let r = 3; r <= 2 + data.rows.length; r++) {
+                    for (let c = 2; c <= lastCol; c++) {
+                        const cell = ws.getCell(r, c);
+                        const v = Number(cell.value) || 0;
+                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: excelColor(v) } };
+                        cell.font = { bold: true, color: { argb: 'FF000000' } };
+                        cell.alignment = { vertical: "middle", horizontal: "center" };
+                    }
+                }
+
+                // Border for main table
+                const top = 2, left = 1, bottom = 2 + data.rows.length, right = lastCol;
+                for (let r = top; r <= bottom; r++) {
+                    for (let c = left; c <= right; c++) {
+                        const cell = ws.getCell(r, c);
+                        cell.border = {
+                            top: { style: r === top ? 'medium' : 'thin', color: { argb: 'FF000000' } },
+                            bottom: { style: r === bottom ? 'medium' : 'thin', color: { argb: 'FF000000' } },
+                            left: { style: c === left ? 'medium' : 'thin', color: { argb: 'FF000000' } },
+                            right: { style: c === right ? 'medium' : 'thin', color: { argb: 'FF000000' } },
+                        };
+                    }
+                }
+
+                // Column widths
+                ws.getColumn(1).width = 12;
+                for (let c = 2; c <= lastCol; c++) ws.getColumn(c).width = 6;
+
+                // ===== MINI TABLE IN EXCEL (5 cols) =====
+                const mini = computeMini5(data);
+                const startMiniRow = bottom + 2; // blank row after main table
+
+                ws.addRow([]); // blank
+
+                // Mini header: 6 cols (label + 5)
+                ws.addRow(["", "Hour", "2 HRS", "3 HRS", "4 HRS", "5 HRS"]);
+                const miniHdrRow = ws.getRow(startMiniRow);
+
+                for (let c = 1; c <= 6; c++) {
+                    const cell = miniHdrRow.getCell(c);
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF7EAB55' } };
+                    cell.font = { bold: true, color: { argb: 'FF000000' } };
+                    cell.alignment = { vertical: "middle", horizontal: "center" };
+                    cell.border = {
+                        top: { style: "medium", color: { argb: "FF000000" } },
+                        bottom: { style: "medium", color: { argb: "FF000000" } },
+                        left: { style: "medium", color: { argb: "FF000000" } },
+                        right: { style: "medium", color: { argb: "FF000000" } },
+                    };
+                }
+
+                ws.addRow(["Ave Flights", ...mini.avg5]);
+                ws.addRow(["Max Flights", ...mini.max5]);
+
+                const aveRow = ws.getRow(startMiniRow + 1);
+                const maxRow = ws.getRow(startMiniRow + 2);
+
+                [aveRow, maxRow].forEach(rw => {
+                    for (let c = 1; c <= 6; c++) {
+                        const cell = rw.getCell(c);
+                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD7ECF8' } };
+                        cell.font = { bold: true, color: { argb: 'FF000000' } };
+                        cell.alignment = { vertical: "middle", horizontal: "center" };
+                        cell.border = {
+                            top: { style: "thin", color: { argb: "FF000000" } },
+                            bottom: { style: "thin", color: { argb: "FF000000" } },
+                            left: { style: "thin", color: { argb: "FF000000" } },
+                            right: { style: "thin", color: { argb: "FF000000" } },
+                        };
+                    }
+                });
+
+                // Thick border around mini table
+                const miniTop = startMiniRow, miniBottom = startMiniRow + 2, miniLeft = 1, miniRight = 6;
+                for (let r = miniTop; r <= miniBottom; r++) {
+                    for (let c = miniLeft; c <= miniRight; c++) {
+                        const cell = ws.getCell(r, c);
+                        cell.border = {
+                            top: { style: r === miniTop ? 'medium' : 'thin', color: { argb: 'FF000000' } },
+                            bottom: { style: r === miniBottom ? 'medium' : 'thin', color: { argb: 'FF000000' } },
+                            left: { style: c === miniLeft ? 'medium' : 'thin', color: { argb: 'FF000000' } },
+                            right: { style: c === miniRight ? 'medium' : 'thin', color: { argb: 'FF000000' } },
+                        };
+                    }
+                }
+
+                ws.getColumn(1).width = 16;
+                for (let c = 2; c <= 6; c++) ws.getColumn(c).width = 10;
+            }
+
+            const buf = await wb.xlsx.writeBuffer();
+            const blob = new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "Flight_Intervals.xlsx";
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+    </script>
 
 </body>
+
 </html>

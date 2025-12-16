@@ -14,24 +14,68 @@
     <style>
         body {
             margin: 0;
-            padding: 24px;
-            font-family: system-ui, -apple-system, Segoe UI, Arial;
-            background: #0b1220;
+            padding: 20px;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0b1220 0%, #1a2332 100%);
             color: #e6eefc;
+            line-height: 1.6;
+        }
+
+        .nav-bar {
+            background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .nav-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 2px solid #334155;
+            background: linear-gradient(145deg, #1e293b 0%, #334155 100%);
+            color: #e6eefc;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            display: inline-block;
+        }
+
+        .nav-btn:hover {
+            border-color: #475569;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(145deg, #22c55e 0%, #16a34a 100%);
+            border-color: #16a34a;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
         }
 
         h2 {
-            margin: 18px 0 8px;
-            font-weight: 800;
+            margin: 24px 0 16px;
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: -0.025em;
+            color: #f8fafc;
         }
 
         .card {
-            background: #0f172a;
-            border: 1px solid #1f2a44;
-            border-radius: 14px;
-            padding: 16px;
-            margin-top: 14px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, .25);
+            background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 24px;
+            margin-top: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
         }
 
         .row {
@@ -56,25 +100,56 @@
         input[type=file],
         button {
             width: 100%;
-            padding: 10px 12px;
-            border-radius: 10px;
-            border: 1px solid #2a3a5d;
-            background: #0b1220;
+            padding: 10px 20px;
+            border-radius: 12px;
+            border: 2px solid #334155;
+            background: #0f172a;
             color: #e6eefc;
             font-weight: 600;
+            font-size: 15px;
             outline: none;
+            transition: all 0.2s ease;
+            height: 52px;
+            box-sizing: border-box;
+            line-height: 28px; /* Ensures text vertically centers with button */
+        }
+
+        input[type=file]::file-selector-button {
+            margin-right: 16px;
+            border: none;
+            background: linear-gradient(145deg, #22c55e 0%, #16a34a 100%);
+            padding: 0 16px 32px 16px; /* Maximum upward push */
+            height: 28px;
+            line-height: 8px; /* Tight line height */
+            border-radius: 6px;
+            color: #fff;
+            cursor: pointer;
+            font-weight: 700;
+            transition: background .2s;
+            font-size: 13px;
+            vertical-align: middle;
+        }
+
+        input[type=file]::file-selector-button:hover {
+            background: linear-gradient(145deg, #16a34a 0%, #15803d 100%);
         }
 
         button {
             cursor: pointer;
-            background: #1e293b;
-            border-color: #334155;
-            transition: .15s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
         button:hover {
-            transform: translateY(-1px);
-            background: #24324a;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+            border-color: #475569;
+            background: #1e293b;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
         }
 
         #genBtn {
@@ -84,19 +159,23 @@
         .download-wrap {
             display: flex;
             justify-content: center;
-            margin-top: 10px;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #334155;
         }
 
         #downloadBtn {
-            width: 220px;
-            background: #22c55e;
+            width: 240px;
+            background: linear-gradient(145deg, #22c55e 0%, #16a34a 100%);
             border-color: #16a34a;
-            color: #001b08;
-            font-weight: 800;
+            color: #ffffff;
+            font-weight: 700;
+            box-shadow: 0 4px 16px rgba(34, 197, 94, 0.3);
         }
 
         #downloadBtn:hover {
-            background: #2dd16a;
+            background: linear-gradient(145deg, #16a34a 0%, #15803d 100%);
+            box-shadow: 0 6px 24px rgba(34, 197, 94, 0.4);
         }
 
         /* ===========================
@@ -105,6 +184,7 @@
         .ms-dropdown {
             position: relative;
             width: 100%;
+            z-index: 10000;
         }
 
         .ms-btn {
@@ -112,17 +192,28 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 10px 12px;
-            border-radius: 10px;
-            border: 1px solid #2a3a5d;
-            background: #0b1220;
+            padding: 14px 20px;
+            border-radius: 12px;
+            border: 2px solid #334155;
+            background: #0f172a;
             color: #e6eefc;
-            font-weight: 700;
+            font-weight: 600;
             cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            font-size: 15px;
+            height: 52px;
+            box-sizing: border-box;
+        }
+
+        .ms-btn:hover {
+            border-color: #475569;
+            background: #1e293b;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
         }
 
         .ms-btn .ms-label {
-            font-size: 14px;
+            font-size: 15px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -131,22 +222,23 @@
 
         .ms-btn .ms-caret {
             opacity: .8;
-            font-size: 12px;
+            font-size: 14px;
             margin-left: 8px;
         }
 
         .ms-panel {
             position: absolute;
-            top: calc(100% + 6px);
+            top: calc(100% + 8px);
             left: 0;
             right: 0;
-            background: #0b1220;
-            border: 1px solid #2a3a5d;
-            border-radius: 10px;
-            padding: 8px;
-            z-index: 999;
+            background: #1e293b;
+            border: 2px solid #475569;
+            border-radius: 12px;
+            padding: 16px;
+            z-index: 9999;
             display: none;
-            box-shadow: 0 12px 30px rgba(0, 0, 0, .35);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(12px);
         }
 
         .ms-panel.open {
@@ -154,43 +246,71 @@
         }
 
         .ms-search {
-            width: 90%;
-            padding: 8px 10px;
-            border-radius: 8px;
-            border: 1px solid #2a3a5d;
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 10px;
+            border: 2px solid #334155;
             background: #0f172a;
             color: #e6eefc;
-            font-weight: 600;
-            margin-bottom: 8px;
+            font-weight: 500;
+            margin-bottom: 12px;
+            outline: none;
+            transition: all 0.2s ease;
+            font-size: 15px;
+            box-sizing: border-box;
+        }
+
+        .ms-search:focus {
+            border-color: #22c55e;
+            box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.15);
         }
 
         .ms-list {
-            max-height: 150px;
+            max-height: 180px;
             overflow: auto;
-            padding-right: 4px;
+            padding-right: 6px;
+        }
+
+        .ms-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .ms-list::-webkit-scrollbar-track {
+            background: #334155;
+            border-radius: 3px;
+        }
+
+        .ms-list::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
         }
 
         .ms-item {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 6px 4px;
-            border-radius: 6px;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            margin-bottom: 2px;
         }
 
         .ms-item:hover {
-            background: #111a33;
+            background: #334155;
         }
 
         .ms-item input {
-            width: 16px;
-            height: 16px;
+            width: 18px;
+            height: 18px;
             accent-color: #22c55e;
+            cursor: pointer;
         }
 
         .ms-item span {
-            font-size: 14px;
+            font-size: 15px;
             color: #e6eefc;
+            font-weight: 500;
         }
 
         /* ===========================
@@ -200,30 +320,35 @@
             width: 100%;
             border-collapse: separate;
             border-spacing: 0;
-            font-size: 14px;
+            font-size: 13px;
             overflow: hidden;
             border-radius: 12px;
-            border: 1px solid #1f2a44;
-            margin-top: 10px;
+            border: 1px solid #334155;
+            margin-top: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
         }
 
         thead th {
-            background: #111a33;
-            color: #eaf1ff;
-            padding: 8px;
-            border-bottom: 1px solid #1f2a44;
-            font-weight: 800;
+            background: linear-gradient(145deg, #1e293b 0%, #334155 100%);
+            color: #f8fafc;
+            padding: 12px 8px;
+            border-bottom: 2px solid #475569;
+            font-weight: 700;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         tbody td,
         tbody th {
-            padding: 7px 8px;
+            padding: 10px 8px;
             text-align: center;
-            border-bottom: 1px solid #14203c;
-            border-right: 1px solid #14203c;
-            color: #0b1220;
-            font-weight: 700;
-            background: #e8f5e9;
+            border-bottom: 1px solid #334155;
+            border-right: 1px solid #334155;
+            color: #0f172a;
+            font-weight: 600;
+            background: #ffffff;
+            transition: all 0.2s ease;
         }
 
         tbody tr:last-child td,
@@ -237,24 +362,117 @@
         }
 
         tbody th {
-            background: #0e1730;
-            color: #eaf1ff;
-            font-weight: 800;
+            background: linear-gradient(145deg, #334155 0%, #475569 100%);
+            color: #f8fafc;
+            font-weight: 700;
             text-align: left;
-            padding-left: 10px;
+            padding-left: 16px;
             position: sticky;
             left: 0;
+            min-width: 100px;
+        }
+
+        tbody tr:hover td {
+            background: rgba(255, 255, 255, 0.95);
         }
 
         .nodata {
-            padding: 12px;
-            opacity: .8;
-            color: #ccc;
+            padding: 32px 16px;
+            text-align: center;
+            color: #64748b;
+            font-style: italic;
+            background: linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 8px;
+            margin-top: 16px;
+        }
+
+        /* Function supply cards (mirrors Operations Dashboard styling) */
+        .functions-display {
+            margin-bottom: 12px;
+        }
+
+        .functions-display label {
+            font-size: 13px;
+            opacity: 0.9;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .functions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 12px;
+        }
+
+        .function-card {
+            background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
+            border: 1px solid #475569;
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .function-card:hover {
+            border-color: #64748b;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .function-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #cbd5e1;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .function-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #f8fafc;
+        }
+
+        .function-value.empty {
+            opacity: 0.4;
+            font-size: 1.2rem;
+        }
+        /* Upload input sizing */
+        input[type=file] {
+            padding: 14px 20px;
+            font-size: 15px;
+            height: 48px;
+        }
+        input[type=file]::file-selector-button {
+            padding: 10px 14px;
+            margin-right: 12px;
+            border-radius: 10px;
+            border: 2px solid #334155;
+            background: linear-gradient(145deg, #22c55e 0%, #16a34a 100%);
+            color: #ffffff;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        input[type=file]::file-selector-button:hover {
+            background: linear-gradient(145deg, #16a34a 0%, #15803d 100%);
+            border-color: #16a34a;
+        }
+        /* Dropdown search sizing */
+        .ms-search {
+            padding: 14px 16px;
+            font-size: 15px;
+            border-radius: 10px;
+        }
+        .ms-search:focus {
+            box-shadow: 0 0 0 3px rgba(71, 85, 105, 0.25);
         }
     </style>
 </head>
 
 <body>
+
+    
 
     <h2>Flight Interval Generator</h2>
 
@@ -266,7 +484,7 @@
             </div>
         </div>
 
-        <div class="row" style="margin-top:12px;">
+        <div class="row" style="margin-top:16px;">
             <div>
                 <label>Station</label>
                 <div id="stationDD" class="ms-dropdown"></div>
@@ -285,7 +503,7 @@
             </div>
         </div>
 
-        <div class="row" style="margin-top:12px;">
+        <div class="row" style="margin-top:20px;">
             <button id="genBtn" disabled>Generate Tables</button>
         </div>
 
@@ -312,6 +530,178 @@
         <div id="miniAll"></div>
     </div>
 
+    <div class="card" style="margin-top: 12px;">
+        <h2>Supply Filters</h2>
+        <div class="row" style="margin-top:12px;">
+            <div>
+                <label>Station</label>
+                <div id="stationDD2" class="ms-dropdown"></div>
+            </div>
+            <div>
+                <label>Serviced By</label>
+                <div id="servicedDD2" class="ms-dropdown"></div>
+            </div>
+            <div>
+                <label>Month </label>
+                <div id="monthDD2" class="ms-dropdown"></div>
+            </div>
+            <div>
+                <label>Airline </label>
+                <div id="airlineDD2" class="ms-dropdown"></div>
+            </div>
+        </div>
+        <div class="row" style="margin-top:20px;">
+            <button id="genBtn2" disabled>Generate Tables</button>
+        </div>
+    </div>
+
+    <div class="card" style="margin-top: 20px;">
+        <h2>Function Supply - Shift A<Acr></Acr></h2>
+        <div class="functions-display">
+            
+            <div class="functions-grid">
+                <div class="function-card">
+                    <div class="function-label">TRC</div>
+                    <div class="function-value" id="supplyTRC">-</div>
+                </div>
+                <div class="function-card">
+                    <div class="function-label">BAG REP</div>
+                    <div class="function-value empty" id="supplyBAGREP">-</div>
+                </div>
+                <div class="function-card">
+                    <div class="function-label">TECH OP</div>
+                    <div class="function-value empty" id="supplyTECHOP">-</div>
+                </div>
+                <div class="function-card">
+                    <div class="function-label">DRIVERS</div>
+                    <div class="function-value empty" id="supplyDRIVERS">-</div>
+                </div>
+                <div class="function-card">
+                    <div class="function-label">BAG OP</div>
+                    <div class="function-value empty" id="supplyBAGOP">-</div>
+                </div>
+                <div class="function-card">
+                    <div class="function-label">RAMP GW</div>
+                    <div class="function-value empty" id="supplyRAMPGW">-</div>
+                </div>
+                <div class="function-card">
+                    <div class="function-label">BASEMENT GW</div>
+                    <div class="function-value empty" id="supplyBASEMENTGW">-</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" style="margin-top: 12px;">
+        <h2>Function Supply - Shift B</h2>
+        <div class="functions-display">
+            
+            <div class="functions-grid">
+                <div class="function-card">
+                    <div class="function-label">TRC</div>
+                    <div class="function-value" id="supplyTRC_B">-</div>
+                </div>
+                <div class="function-card">
+                    <div class="function-label">BAG REP</div>
+                    <div class="function-value empty" id="supplyBAGREP_B">-</div>
+                </div>
+                <div class="function-card">
+                    <div class="function-label">TECH OP</div>
+                    <div class="function-value empty" id="supplyTECHOP_B">-</div>
+                </div>
+                <div class="function-card">
+                    <div class="function-label">DRIVERS</div>
+                    <div class="function-value empty" id="supplyDRIVERS_B">-</div>
+                </div>
+                <div class="function-card">
+                    <div class="function-label">BAG OP</div>
+                    <div class="function-value empty" id="supplyBAGOP_B">-</div>
+                </div>
+                <div class="function-card">
+                    <div class="function-label">RAMP GW</div>
+                    <div class="function-value empty" id="supplyRAMPGW_B">-</div>
+                </div>
+                <div class="function-card">
+                    <div class="function-label">BASEMENT GW</div>
+                    <div class="function-value empty" id="supplyBASEMENTGW_B">-</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" style="margin-top: 12px;">
+        <h2>Function Supply - Shift C</h2>
+        <div class="functions-display">
+            
+            <div class="functions-grid">
+                <div class="function-card">
+                    <div class="function-label">TRC</div>
+                    <div class="function-value" id="supplyTRC_C">-</div>
+                </div>
+                <div class="function-card">
+                    <div class="function-label">BAG REP</div>
+                    <div class="function-value empty" id="supplyBAGREP_C">-</div>
+                </div>
+                <div class="function-card">
+                    <div class="function-label">TECH OP</div>
+                    <div class="function-value empty" id="supplyTECHOP_C">-</div>
+                </div>
+                <div class="function-card">
+                    <div class="function-label">DRIVERS</div>
+                    <div class="function-value empty" id="supplyDRIVERS_C">-</div>
+                </div>
+                <div class="function-card">
+                    <div class="function-label">BAG OP</div>
+                    <div class="function-value empty" id="supplyBAGOP_C">-</div>
+                </div>
+                <div class="function-card">
+                    <div class="function-label">RAMP GW</div>
+                    <div class="function-value empty" id="supplyRAMPGW_C">-</div>
+                </div>
+                <div class="function-card">
+                    <div class="function-label">BASEMENT GW</div>
+                    <div class="function-value empty" id="supplyBASEMENTGW_C">-</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" style="margin-top: 12px;">
+        <h2>Function Totals (All Shifts)</h2>
+        <div class="functions-display">
+            <div class="functions-grid">
+                <div class="function-card">
+                    <div class="function-label">TRC</div>
+                    <div class="function-value empty" id="supplyTotalTRC">-</div>
+                </div>
+                <div class="function-card">
+                    <div class="function-label">BAG REP</div>
+                    <div class="function-value empty" id="supplyTotalBAGREP">-</div>
+                </div>
+                <div class="function-card">
+                    <div class="function-label">TECH OP</div>
+                    <div class="function-value empty" id="supplyTotalTECHOP">-</div>
+                </div>
+                <div class="function-card">
+                    <div class="function-label">DRIVERS</div>
+                    <div class="function-value empty" id="supplyTotalDRIVERS">-</div>
+                </div>
+                <div class="function-card">
+                    <div class="function-label">BAG OP</div>
+                    <div class="function-value empty" id="supplyTotalBAGOP">-</div>
+                </div>
+                <div class="function-card">
+                    <div class="function-label">RAMP GW</div>
+                    <div class="function-value empty" id="supplyTotalRAMPGW">-</div>
+                </div>
+                <div class="function-card">
+                    <div class="function-label">BASEMENT GW</div>
+                    <div class="function-value empty" id="supplyTotalBASEMENTGW">-</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         /*******************************************************
           GLOBALS + HELPERS
@@ -326,7 +716,172 @@
         const upper = x => clean(x).toUpperCase();
         const HEAT = ["#d1fae5", "#86efac", "#4ade80", "#22c55e", "#15803d"];
 
+        // Safe localStorage setter (survives quota / privacy blocks)
+        function safeStore(key, value) {
+            try {
+                localStorage.setItem(key, JSON.stringify(value));
+            } catch (err) {
+                console.warn("Could not save to localStorage", err);
+            }
+        }
+
         function uniq(arr) { return [...new Set(arr.filter(v => v !== ""))].sort(); }
+
+        /*******************************************************
+          FUNCTION SUPPLY DISPLAY (cards at bottom, shifts A/B/C)
+          - Uses counts from operations-db.json (field: count).
+          - Formula: (shiftMax * count) * 1.58 per function per shift.
+          - shiftMax comes from the All Flights table (hour row) per shift.
+        ********************************************************/
+        const functionSupplyEls = {
+            A: {
+                "TRC": document.getElementById("supplyTRC"),
+                "BAG REP": document.getElementById("supplyBAGREP"),
+                "TECH OP": document.getElementById("supplyTECHOP"),
+                "DRIVERS": document.getElementById("supplyDRIVERS"),
+                "BAG OP": document.getElementById("supplyBAGOP"),
+                "RAMP GW": document.getElementById("supplyRAMPGW"),
+                "BASEMENT GW": document.getElementById("supplyBASEMENTGW"),
+            },
+            B: {
+                "TRC": document.getElementById("supplyTRC_B"),
+                "BAG REP": document.getElementById("supplyBAGREP_B"),
+                "TECH OP": document.getElementById("supplyTECHOP_B"),
+                "DRIVERS": document.getElementById("supplyDRIVERS_B"),
+                "BAG OP": document.getElementById("supplyBAGOP_B"),
+                "RAMP GW": document.getElementById("supplyRAMPGW_B"),
+                "BASEMENT GW": document.getElementById("supplyBASEMENTGW_B"),
+            },
+            C: {
+                "TRC": document.getElementById("supplyTRC_C"),
+                "BAG REP": document.getElementById("supplyBAGREP_C"),
+                "TECH OP": document.getElementById("supplyTECHOP_C"),
+                "DRIVERS": document.getElementById("supplyDRIVERS_C"),
+                "BAG OP": document.getElementById("supplyBAGOP_C"),
+                "RAMP GW": document.getElementById("supplyRAMPGW_C"),
+                "BASEMENT GW": document.getElementById("supplyBASEMENTGW_C"),
+            }
+        };
+        const functionTotalsEls = {
+            "TRC": document.getElementById("supplyTotalTRC"),
+            "BAG REP": document.getElementById("supplyTotalBAGREP"),
+            "TECH OP": document.getElementById("supplyTotalTECHOP"),
+            "DRIVERS": document.getElementById("supplyTotalDRIVERS"),
+            "BAG OP": document.getElementById("supplyTotalBAGOP"),
+            "RAMP GW": document.getElementById("supplyTotalRAMPGW"),
+            "BASEMENT GW": document.getElementById("supplyTotalBASEMENTGW"),
+        };
+
+        let operationsDB = [];
+
+        async function loadOperationsDB() {
+            try {
+                const resp = await fetch("operations-db.json");
+                operationsDB = await resp.json();
+            } catch (err) {
+                console.warn("Could not load operations-db.json", err);
+                operationsDB = [];
+            }
+        }
+
+        function setFunctionSupply(shiftKey, name, value) {
+            const el = functionSupplyEls[shiftKey]?.[name];
+            if (!el) return;
+            if (value === undefined || value === null || value === "") {
+                el.textContent = "-";
+                el.classList.add("empty");
+            } else {
+                el.textContent = value;
+                el.classList.remove("empty");
+            }
+        }
+
+        function resetFunctionSupplies() {
+            Object.keys(functionSupplyEls).forEach(shiftKey => {
+                Object.values(functionSupplyEls[shiftKey]).forEach(el => {
+                    el.textContent = "-";
+                    el.classList.add("empty");
+                });
+            });
+            Object.values(functionTotalsEls).forEach(el => {
+                if (!el) return;
+                el.textContent = "-";
+                el.classList.add("empty");
+            });
+        }
+
+        function getFunctionCount(funcName) {
+            if (!operationsDB || operationsDB.length === 0) return 1;
+            const total = operationsDB
+                .filter(op => op.function === funcName)
+                .reduce((sum, op) => {
+                    const c = Number(op.count);
+                    return sum + (Number.isFinite(c) && c > 0 ? c : 0);
+                }, 0);
+            return total > 0 ? total : 1;
+        }
+
+        // Multiplier per function (customize per function if needed)
+        const functionMultiplier = {
+            "TRC": 1.58,
+            "BAG REP": 1.58,
+            "TECH OP": 1.58,
+            "DRIVERS": 1.58,
+            "BAG OP": 1.58,
+            "RAMP GW": 1.17,
+            "BASEMENT GW": 1.17,
+        };
+        const functionCounts = {
+            "TRC": 1,
+            "BAG REP": 1,
+            "TECH OP": 2,
+            "DRIVERS": 2,
+            "BAG OP": 1,
+            "RAMP GW": 4,
+            "BASEMENT GW": 2,
+        };
+
+        function updateFunctionSupplies() {
+            if (!finalAll) {
+                resetFunctionSupplies();
+                return;
+            }
+
+            const shiftMax = computeShiftMax(finalAll) || [0, 0, 0];
+            const shifts = ["A", "B", "C"];
+
+            const totalsByFunc = {
+                "TRC": 0,
+                "BAG REP": 0,
+                "TECH OP": 0,
+                "DRIVERS": 0,
+                "BAG OP": 0,
+                "RAMP GW": 0,
+                "BASEMENT GW": 0,
+            };
+            shifts.forEach((shiftKey, idx) => {
+                const maxVal = Number(shiftMax[idx]) || 0;
+                Object.keys(functionSupplyEls[shiftKey]).forEach(funcName => {
+                    const count = Number(functionCounts[funcName]) || 1;
+                    const mult = funcName.includes("GW") ? 1.17 : 1.58;
+                    const calc = Math.round(maxVal * count * mult);
+                    setFunctionSupply(shiftKey, funcName, Number.isFinite(calc) ? calc : "-");
+                    totalsByFunc[funcName] += Number.isFinite(calc) ? calc : 0;
+                });
+            });
+            Object.keys(functionTotalsEls).forEach(funcName => {
+                const el = functionTotalsEls[funcName];
+                if (!el) return;
+                const v = totalsByFunc[funcName];
+                if (!Number.isFinite(v) || v <= 0) {
+                    el.textContent = "-";
+                    el.classList.add("empty");
+                } else {
+                    el.textContent = v;
+                    el.classList.remove("empty");
+                }
+            });
+        }
 
         /*******************************************************
           MULTI-SELECT DROPDOWN (Search + Clear)
@@ -351,6 +906,7 @@
             const list = container.querySelector(".ms-list");
 
             const state = { allItems: [], selected: new Set() };
+            let overlay = null;
 
             // Clear button
             const clearBtn = document.createElement("div");
@@ -378,9 +934,31 @@
                 search.value = "";
                 renderList();
                 search.focus();
+                if (panel.classList.contains("open")) {
+                    const rect = btn.getBoundingClientRect();
+                    overlay = document.createElement("div");
+                    overlay.style.position = "fixed";
+                    overlay.style.top = "0";
+                    overlay.style.left = "0";
+                    overlay.style.right = "0";
+                    overlay.style.bottom = "0";
+                    overlay.style.background = "transparent";
+                    overlay.style.zIndex = "100000";
+                    overlay.addEventListener("click", () => {
+                        api.close();
+                    });
+                    document.body.appendChild(overlay);
+                    panel.style.position = "fixed";
+                    panel.style.top = `${rect.bottom + 8}px`;
+                    panel.style.left = `${rect.left}px`;
+                    panel.style.width = `${rect.width}px`;
+                    panel.style.zIndex = "100001";
+                    document.body.appendChild(panel);
+                }
             });
 
             search.addEventListener("input", renderList);
+            panel.addEventListener("click", (e) => e.stopPropagation());
 
             function renderList() {
                 const q = upper(search.value);
@@ -419,12 +997,32 @@
 
             function getSelected() { return [...state.selected]; }
 
-            return { setItems, getSelected, close: () => panel.classList.remove("open") };
+            const api = {
+                setItems,
+                getSelected,
+                close: () => {
+                    panel.classList.remove("open");
+                    if (overlay) {
+                        try { document.body.removeChild(overlay); } catch {}
+                        overlay = null;
+                    }
+                    if (panel && panel.parentElement === document.body) {
+                        container.appendChild(panel);
+                        panel.style.position = "";
+                        panel.style.top = "";
+                        panel.style.left = "";
+                        panel.style.width = "";
+                        panel.style.zIndex = "";
+                    }
+                }
+            };
+            return api;
         }
 
         let ddStation, ddServiced, ddMonth, ddAirline;
+        let ddStation2, ddServiced2, ddMonth2, ddAirline2;
         function closeAllDropdowns() {
-            [ddStation, ddServiced, ddMonth, ddAirline].forEach(dd => dd && dd.close());
+            [ddStation, ddServiced, ddMonth, ddAirline, ddStation2, ddServiced2, ddMonth2, ddAirline2].forEach(dd => dd && dd.close());
         }
         document.addEventListener("click", closeAllDropdowns);
 
@@ -452,6 +1050,8 @@
 
             populateFilters(rows);
             document.getElementById("genBtn").disabled = false;
+            const gb2 = document.getElementById("genBtn2");
+            if (gb2) gb2.disabled = false;
         });
 
         function csvToJson(txt) {
@@ -500,18 +1100,26 @@
             ddServiced = createMultiDropdown("servicedDD", "Select Serviced By");
             ddMonth = createMultiDropdown("monthDD", "Select Month");
             ddAirline = createMultiDropdown("airlineDD", "Select Airline");
+            ddStation2 = createMultiDropdown("stationDD2", "Select Station");
+            ddServiced2 = createMultiDropdown("servicedDD2", "Select Serviced By");
+            ddMonth2 = createMultiDropdown("monthDD2", "Select Month");
+            ddAirline2 = createMultiDropdown("airlineDD2", "Select Airline");
 
             ddStation.setItems(uniq(rows.map(r => r.Station)));
             ddServiced.setItems(uniq(rows.map(r => r.ServicedBy)));
             ddMonth.setItems(uniq(rows.map(r => r.Month)));
             ddAirline.setItems(uniq(rows.map(r => r.Airline)));
+            ddStation2.setItems(uniq(rows.map(r => r.Station)));
+            ddServiced2.setItems(uniq(rows.map(r => r.ServicedBy)));
+            ddMonth2.setItems(uniq(rows.map(r => r.Month)));
+            ddAirline2.setItems(uniq(rows.map(r => r.Airline)));
         }
 
         function applyFilters(rows) {
-            const ST = ddStation.getSelected().map(upper);
-            const SV = ddServiced.getSelected().map(upper);
-            const MO = ddMonth.getSelected().map(upper);
-            const AI = ddAirline.getSelected().map(upper);
+            const ST = uniq([...ddStation.getSelected(), ...(ddStation2 ? ddStation2.getSelected() : [])].map(upper));
+            const SV = uniq([...ddServiced.getSelected(), ...(ddServiced2 ? ddServiced2.getSelected() : [])].map(upper));
+            const MO = uniq([...ddMonth.getSelected(), ...(ddMonth2 ? ddMonth2.getSelected() : [])].map(upper));
+            const AI = uniq([...ddAirline.getSelected(), ...(ddAirline2 ? ddAirline2.getSelected() : [])].map(upper));
 
             return rows.filter(r => {
                 if (ST.length > 0 && !ST.includes(r.Station)) return false;
@@ -593,33 +1201,74 @@
             return { avg5, max5 };
         }
 
-        function renderMiniTable(containerId, table) {
+        function computeShiftMax(table) {
+            if (!table || !table.rows || table.rows.length === 0) return null;
+            // Use the first data row (labeled "Hour") values across 24 hours
+            const row0 = table.rows[0].slice(1);
+            const ranges = [
+                [0, 7],   // Shift A: 0-7
+                [8, 15],  // Shift B: 8-15
+                [16, 23], // Shift C: 16-23
+            ];
+            return ranges.map(([start, end]) => {
+                const slice = row0.slice(start, end + 1);
+                return slice.length ? Math.max(...slice) : 0;
+            });
+        }
+
+        function renderMiniTable(containerId, table, includeShifts = false) {
             const el = document.getElementById(containerId);
             if (!table) { el.innerHTML = ""; return; }
 
             const mini = computeMini5(table);
+            const shiftMax = includeShifts ? computeShiftMax(table) : null;
             const headers = ["Hour", "2 HRS", "3 HRS", "4 HRS", "5 HRS"];
 
-            el.innerHTML = `
-    <table style="margin-top:12px;">
+            let html = `
+    <table style="margin-top:16px;">
       <thead>
-        <tr style="background:#7EAB55; color:#000; font-weight:800;">
+        <tr style="background: linear-gradient(145deg, #7EAB55 0%, #5a8f3d 100%); color:#ffffff; font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:0.5px;">
           <th></th>
           ${headers.map(h => `<th>${h}</th>`).join("")}
         </tr>
       </thead>
       <tbody>
-        <tr style="background:#d7ecf8;">
-          <th style="background:#d7ecf8; font-weight:800; color :#000">Ave Flights</th>
-          ${mini.avg5.map(v => `<td>${v}</td>`).join("")}
+        <tr style="background: linear-gradient(145deg, #e0f2fe 0%, #bae6fd 100%);">
+          <th style="background: linear-gradient(145deg, #1e293b 0%, #334155 100%); color:#ffffff; font-weight:700;">Average Flights</th>
+          ${mini.avg5.map(v => `<td style="font-weight:600; color:#1e293b;">${v}</td>`).join("")}
         </tr>
-        <tr style="background:#d7ecf8;">
-          <th style="background:#d7ecf8; font-weight:800;color :#000">Max Flights</th>
-          ${mini.max5.map(v => `<td>${v}</td>`).join("")}
+        <tr style="background: linear-gradient(145deg, #fef3c7 0%, #fde68a 100%);">
+          <th style="background: linear-gradient(145deg, #1e293b 0%, #334155 100%); color:#ffffff; font-weight:700;">Max Flights</th>
+          ${mini.max5.map(v => `<td style="font-weight:600; color:#1e293b;">${v}</td>`).join("")}
         </tr>
       </tbody>
     </table>
   `;
+
+            if (shiftMax) {
+                html += `
+    <div style="margin-top:12px;">
+      <table style="width:100%; border-collapse:separate; border-spacing:0; border:1px solid #334155; border-radius:12px; overflow:hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+        <thead>
+          <tr style="background: linear-gradient(145deg, #1e293b 0%, #334155 100%); color:#ffffff; text-transform:uppercase; letter-spacing:0.5px; font-size:12px;">
+            <th style="padding:10px; border-right:1px solid #334155;">Shift A (0-7)</th>
+            <th style="padding:10px; border-right:1px solid #334155;">Shift B (8-15)</th>
+            <th style="padding:10px;">Shift C (16-23)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="background: linear-gradient(145deg, #ede9fe 0%, #ddd6fe 100%); text-align:center; font-weight:700; color:#1e293b;">
+            <td style="padding:12px; border-right:1px solid #d1c9ff;">${shiftMax[0]}</td>
+            <td style="padding:12px; border-right:1px solid #d1c9ff;">${shiftMax[1]}</td>
+            <td style="padding:12px;">${shiftMax[2]}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    `;
+            }
+
+            el.innerHTML = html;
         }
 
         /*******************************************************
@@ -639,19 +1288,19 @@
             const el = document.getElementById(divId);
             if (!table) { el.innerHTML = `<div class="nodata">No Data</div>`; return; }
 
-            const vals = table.rows.flatMap(r => r.slice(1));
-            const minV = Math.min(...vals);
-            const maxV = Math.max(...vals);
-
             let html = `<table><thead><tr><th>Intervals</th>`;
             for (const h of table.header) html += `<th>${h}:00</th>`;
             html += `</tr></thead><tbody>`;
 
             for (const r of table.rows) {
+                const rowVals = r.slice(1);
+                const rowMin = Math.min(...rowVals);
+                const rowMax = Math.max(...rowVals);
+
                 html += `<tr><th>${r[0]}</th>`;
-                for (const v of r.slice(1)) {
-                    const bg = pickColor(v, minV, maxV);
-                    html += `<td style="background:${bg}; color:#000;">${v}</td>`;
+                for (const v of rowVals) {
+                    const bg = pickColor(v, rowMin, rowMax);
+                    html += `<td style="background:${bg}; color:#000; font-weight:600;">${v}</td>`;
                 }
                 html += `</tr>`;
             }
@@ -660,9 +1309,9 @@
         }
 
         /*******************************************************
-          GENERATE BUTTON
+          GENERATE
         ********************************************************/
-        document.getElementById("genBtn").addEventListener("click", () => {
+        function generateTables() {
             const base = applyFilters(rows);
 
             const arr = base.filter(r => r.AD === "A");
@@ -678,10 +1327,32 @@
 
             renderMiniTable("miniA", finalA);
             renderMiniTable("miniD", finalD);
-            renderMiniTable("miniAll", finalAll);
+            renderMiniTable("miniAll", finalAll, true);
 
             document.getElementById("downloadBtn").disabled = false;
-        });
+
+            const sharedPayload = {
+                generatedAt: new Date().toISOString(),
+                filters: {
+                    station: ddStation.getSelected(),
+                    servicedBy: ddServiced.getSelected(),
+                    month: ddMonth.getSelected(),
+                    airline: ddAirline.getSelected(),
+                },
+                flights: base,
+                intervals: {
+                    arrivals: finalA,
+                    departures: finalD,
+                    total: finalAll,
+                }
+            };
+            safeStore("flightDataShared", sharedPayload);
+
+            updateFunctionSupplies();
+        }
+        document.getElementById("genBtn").addEventListener("click", generateTables);
+        const genBtn2El = document.getElementById("genBtn2");
+        if (genBtn2El) genBtn2El.addEventListener("click", generateTables);
 
         /*******************************************************
           DOWNLOAD EXCEL (3 SHEETS + MINI TABLE 5 cols)
@@ -733,15 +1404,12 @@
                 // Data rows
                 data.rows.forEach(r => ws.addRow(r));
 
-                // Heat colors
-                const nums = data.rows.flatMap(r => r.slice(1));
-                const minV = Math.min(...nums);
-                const maxV = Math.max(...nums);
+                // Heat colors per row
                 const C = ["FFd1fae5", "FF86efac", "FF4ade80", "FF22c55e", "FF15803d"];
 
-                function excelColor(v) {
-                    if (maxV === minV) return C[0];
-                    const t = (v - minV) / (maxV - minV);
+                function excelColor(v, rowMin, rowMax) {
+                    if (rowMax === rowMin) return C[0];
+                    const t = (v - rowMin) / (rowMax - rowMin);
                     if (t === 1) return C[4];
                     if (t > 0.75) return C[3];
                     if (t > 0.5) return C[2];
@@ -757,12 +1425,17 @@
                     cell.alignment = { vertical: "middle", horizontal: "center" };
                 }
 
-                // Style heatmap cells
-                for (let r = 3; r <= 2 + data.rows.length; r++) {
+                // Style heatmap cells (per row)
+                for (let rowIdx = 0; rowIdx < data.rows.length; rowIdx++) {
+                    const r = 3 + rowIdx;
+                    const rowVals = data.rows[rowIdx].slice(1);
+                    const rowMin = Math.min(...rowVals);
+                    const rowMax = Math.max(...rowVals);
+
                     for (let c = 2; c <= lastCol; c++) {
                         const cell = ws.getCell(r, c);
                         const v = Number(cell.value) || 0;
-                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: excelColor(v) } };
+                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: excelColor(v, rowMin, rowMax) } };
                         cell.font = { bold: true, color: { argb: 'FF000000' } };
                         cell.alignment = { vertical: "middle", horizontal: "center" };
                     }
@@ -857,6 +1530,8 @@
             a.click();
             URL.revokeObjectURL(url);
         });
+
+        
     </script>
 
 </body>

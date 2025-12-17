@@ -823,11 +823,11 @@
 
         // Multiplier per function (customize per function if needed)
         const functionMultiplier = {
-            "TRC": 1.58,
-            "BAG REP": 1.58,
-            "TECH OP": 1.58,
-            "DRIVERS": 1.58,
-            "BAG OP": 1.58,
+            "TRC": 1.48,
+            "BAG REP": 1.48,
+            "TECH OP": 1.48,
+            "DRIVERS": 1.48,
+            "BAG OP": 1.48,
             "RAMP GW": 1.17,
             "BASEMENT GW": 1.17,
         };
@@ -850,7 +850,7 @@
             const shiftMax = computeShiftMax(finalAll) || [0, 0, 0];
             const shifts = ["A", "B", "C"];
 
-            const totalsByFunc = {
+            const totalsRawByFunc = {
                 "TRC": 0,
                 "BAG REP": 0,
                 "TECH OP": 0,
@@ -863,21 +863,22 @@
                 const maxVal = Number(shiftMax[idx]) || 0;
                 Object.keys(functionSupplyEls[shiftKey]).forEach(funcName => {
                     const count = Number(functionCounts[funcName]) || 1;
-                    const mult = funcName.includes("GW") ? 1.17 : 1.58;
-                    const calc = Math.round(maxVal * count * mult);
-                    setFunctionSupply(shiftKey, funcName, Number.isFinite(calc) ? calc : "-");
-                    totalsByFunc[funcName] += Number.isFinite(calc) ? calc : 0;
+                    const perShift = Math.round(maxVal * count);
+                    setFunctionSupply(shiftKey, funcName, Number.isFinite(perShift) ? perShift : "-");
+                    totalsRawByFunc[funcName] += Number.isFinite(perShift) ? perShift : 0;
                 });
             });
             Object.keys(functionTotalsEls).forEach(funcName => {
                 const el = functionTotalsEls[funcName];
                 if (!el) return;
-                const v = totalsByFunc[funcName];
-                if (!Number.isFinite(v) || v <= 0) {
+                const base = totalsRawByFunc[funcName];
+                const mult = funcName.includes("GW") ? 1.17 : 1.48;
+                const totalVal = Math.round(base * mult);
+                if (!Number.isFinite(totalVal) || totalVal <= 0) {
                     el.textContent = "-";
                     el.classList.add("empty");
                 } else {
-                    el.textContent = v;
+                    el.textContent = totalVal;
                     el.classList.remove("empty");
                 }
             });

@@ -31,7 +31,8 @@
             margin: 0;
             padding: 0 20px 20px 20px;
             font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, var(--bg) 0%, var(--bg-2) 100%);
+            background: url('Background1.png') no-repeat center center fixed;
+            background-size: cover;
             color: var(--text);
             line-height: 1.6;
         }
@@ -85,7 +86,7 @@
             letter-spacing: -0.025em;
             color: var(--text);
         }
-        .page-header { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; width: 100%; margin: 10px 0 -50px; }
+        .page-header { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; width: 100%; margin: -10px 0 -39px; }
         .header-image { grid-column: 1; justify-self: start; max-height: 200px; width: auto; object-fit: contain; }
         .title-group { grid-column: 2; display: flex; flex-direction: column; align-items: center; text-align: center; }
         .page-title { display: inline-flex; align-items: baseline; gap: 8px; font-weight: 900; font-size: 2rem; color: #000000; letter-spacing: -0.01em; margin: 0; }
@@ -941,6 +942,10 @@
                         <div id="stationDD" class="ms-dropdown"></div>
                     </div>
                     <div>
+                        <label>Location</label>
+                        <div id="locationDD" class="ms-dropdown"></div>
+                    </div>
+                    <div>
                         <label>Serviced By</label>
                         <div id="servicedDD" class="ms-dropdown"></div>
                     </div>
@@ -1427,6 +1432,7 @@
 
         function normalizeRow(r) {
             const Station = upper(r["Station"]);
+            const Location = upper(r["Location"]);
             const ServicedBy = upper(r["Serviced By"]);
             const Month = upper(r["Month"]);
             const AD = upper(r["A/D"]);
@@ -1437,7 +1443,7 @@
             if (Number.isNaN(hour)) hour = parseHour(r["Time"]);
             if (hour == null) return null;
 
-            return { Date, Hour: hour, Station, ServicedBy, Month, AD, Airline };
+            return { Date, Hour: hour, Station, Location, ServicedBy, Month, AD, Airline };
         }
 
         /*******************************************************
@@ -1445,6 +1451,7 @@
         ********************************************************/
         function populateFilters(rows) {
             ddStation = createMultiDropdown("stationDD", "Select Station", generateTables);
+            ddLocation = createMultiDropdown("locationDD", "Select Location", generateTables);
             ddServiced = createMultiDropdown("servicedDD", "Select Serviced By", generateTables);
             ddMonth = createMultiDropdown("monthDD", "Select Month", generateTables);
             ddAirlineLocal = createMultiDropdown("airlineLocalDD", "Local Airlines", generateTables);
@@ -1452,6 +1459,7 @@
             ddAirlineDedicated = createMultiDropdown("airlineDedicatedDD", "Dedicated Teams", generateTables);
 
             ddStation.setItems(uniq(rows.map(r => r.Station)));
+            ddLocation.setItems(uniq(rows.map(r => r.Location)));
             ddServiced.setItems(uniq(rows.map(r => r.ServicedBy)));
             ddMonth.setItems(uniq(rows.map(r => r.Month)));
             const ALL = uniq(rows.map(r => r.Airline));
@@ -1465,6 +1473,7 @@
 
         function applyFilters(rows) {
             const ST = uniq([...ddStation.getSelected()].map(upper));
+            const LO = uniq([...ddLocation.getSelected()].map(upper));
             const SV = uniq([...ddServiced.getSelected()].map(upper));
             const MO = uniq([...ddMonth.getSelected()].map(upper));
             const AI = uniq([
@@ -1475,6 +1484,7 @@
 
             return rows.filter(r => {
                 if (ST.length > 0 && !ST.includes(r.Station)) return false;
+                if (LO.length > 0 && !LO.includes(r.Location)) return false;
                 if (SV.length > 0 && !SV.includes(r.ServicedBy)) return false;
                 if (MO.length > 0 && !MO.includes(r.Month)) return false;
                 if (AI.length > 0 && !AI.includes(r.Airline)) return false;
@@ -1687,6 +1697,7 @@
                 generatedAt: new Date().toISOString(),
                 filters: {
                     station: ddStation.getSelected(),
+                    location: ddLocation.getSelected(),
                     servicedBy: ddServiced.getSelected(),
                     month: ddMonth.getSelected(),
                     localAirlines: ddAirlineLocal.getSelected(),

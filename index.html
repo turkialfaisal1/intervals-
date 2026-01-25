@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Flight Interval Tables</title>
+    <title>Interval & Manpower Supply</title>
 
     <!-- SheetJS: read CSV/XLSX -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js"></script>
@@ -546,7 +546,7 @@
         .drawer {
             position: fixed;
             top: 0; right: 0; bottom: 0;
-            width: 400px;
+            width: 470px;
             max-width: 90vw;
             background: #ffffff;
             z-index: 20001;
@@ -593,7 +593,7 @@
             flex: 1;
             overflow-y: auto;
             padding: 20px;
-            padding-bottom: 350px; /* Extra space for dropdowns */
+            padding-bottom: 450px; /* Extra space for dropdowns and new sliders */
         }
         .filter-section {
             margin-bottom: 24px;
@@ -649,7 +649,7 @@
 <body>
 
 
-   <div class="page-header">
+    <div class="page-header">
         <img src="logo.png" alt="Logo" class="header-image">
         <div class="title-group">
             <h2 class="page-title"><span class="muted">Interval & </span><span class="accent">Manpower</span><span class="muted"> Supply</span></h2>
@@ -969,6 +969,30 @@
                 </div>
             </div>
 
+            <div class="filter-section">
+                <h3>Engagement Rules</h3>
+                <div class="row" style="flex-direction: column; align-items: stretch; gap: 12px;">
+                    <div id="engagementRulesContainer" style="display: grid; grid-template-columns: 1fr 90px 90px 110px; gap: 8px; align-items: center;">
+                        <div style="font-weight: 700; font-size: 12px;">Function</div>
+                        <div style="font-weight: 700; font-size: 12px;">Count</div>
+                        <div style="font-weight: 700; font-size: 12px;">Fraction</div>
+                        <div style="font-weight: 700; font-size: 12px;">Passengers</div>
+                    </div>
+                    <div style="display: flex; gap: 8px; margin-top: 8px;">
+                        <button id="resetEngagementBtn" class="nav-btn" style="flex: 1; text-align: center; justify-content: center; padding: 6px 4px;">
+                            Reset
+                        </button>
+                        <button id="saveEngagementBtn" class="nav-btn" style="flex: 1; text-align: center; justify-content: center; padding: 6px 4px;">
+                            Save
+                        </button>
+                        <button id="deleteEngagementBtn" class="nav-btn" style="flex: 1; text-align: center; justify-content: center; background: #fee2e2; color: #991b1b; display: none; padding: 6px 4px;">
+                            Delete
+                        </button>
+                    </div>
+                    <div id="engagementPresetBoxes" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;"></div>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -1108,7 +1132,7 @@
         }
 
         // Multiplier per function (customize per function if needed)
-        const functionMultiplier = {
+        const DEFAULT_MULTIPLIER = {
             "TRC": 1.48,
             "BAG REP": 1.48,
             "TECH OP": 1.48,
@@ -1121,7 +1145,7 @@
             "SERVICE AGENT": 1.48,
             "BOARDING + SERVICE AGENT": 1.48,
         };
-        const functionCounts = {
+        const DEFAULT_COUNTS = {
             "TRC": 1,
             "BAG REP": 1,
             "TECH OP": 2,
@@ -1134,6 +1158,270 @@
             "SERVICE AGENT": 3,
             "BOARDING + SERVICE AGENT": 4,
         };
+        const DEFAULT_PASSENGERS = {
+            "TRC": 1,
+            "BAG REP": 1,
+            "TECH OP": 1,
+            "DRIVERS": 1,
+            "BAG OP": 1,
+            "LOAD CONTROL": 5,
+            "RAMP GW": 1,
+            "BASEMENT GW": 1,
+            "BOARDING": 1,
+            "SERVICE AGENT": 1,
+            "BOARDING + SERVICE AGENT": 1,
+        };
+        
+        let activeMultipliers = { ...DEFAULT_MULTIPLIER };
+        let activeCounts = { ...DEFAULT_COUNTS };
+        let activePassengers = { ...DEFAULT_PASSENGERS };
+        let engagementCountPresets = [];
+        let engagementMultiplierPresets = [];
+        let engagementPassengerPresets = [];
+        let activePresetIndex = null;
+
+        function randomInRange(min, max) {
+            return min + Math.random() * (max - min);
+        }
+
+        function randomIntNear(base) {
+            const delta = Math.floor(Math.random() * 3) - 1;
+            const v = base + delta;
+            return v < 1 ? 1 : v;
+        }
+
+        function generateEngagementPresets() {
+            engagementCountPresets = [];
+            engagementMultiplierPresets = [];
+            engagementPassengerPresets = [];
+            const keys = Object.keys(DEFAULT_COUNTS);
+            // Generate 3 random presets
+            for (let i = 0; i < 3; i++) {
+                const counts = {};
+                const mults = {};
+                const paxs = {};
+                keys.forEach(k => {
+                    counts[k] = randomIntNear(DEFAULT_COUNTS[k]);
+                    paxs[k] = DEFAULT_PASSENGERS[k] || 1;
+                    if (DEFAULT_MULTIPLIER[k] >= 1.3) {
+                        mults[k] = Number(randomInRange(1.47, 1.56).toFixed(2));
+                    } else {
+                        const base = DEFAULT_MULTIPLIER[k];
+                        const m = randomInRange(base - 0.1, base + 0.1);
+                        mults[k] = Number(m.toFixed(2));
+                    }
+                });
+                engagementCountPresets.push(counts);
+                engagementMultiplierPresets.push(mults);
+                engagementPassengerPresets.push(paxs);
+            }
+            // Load saved presets
+            try {
+                const saved = localStorage.getItem("myCustomPresets");
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed)) {
+                        parsed.forEach(p => {
+                            engagementCountPresets.push(p.counts);
+                            engagementMultiplierPresets.push(p.mults);
+                            engagementPassengerPresets.push(p.paxs);
+                        });
+                    }
+                }
+            } catch (e) {
+                console.warn("Error loading custom presets", e);
+            }
+        }
+
+        function applyEngagementPreset(index) {
+            const idx = Number(index);
+            if (!Number.isFinite(idx)) return;
+            if (!engagementCountPresets[idx] || !engagementMultiplierPresets[idx] || !engagementPassengerPresets[idx]) return;
+            activePresetIndex = idx;
+            activeCounts = { ...engagementCountPresets[idx] };
+            activeMultipliers = { ...engagementMultiplierPresets[idx] };
+            activePassengers = { ...engagementPassengerPresets[idx] };
+            
+            // Show/hide Delete button (only for custom presets, index >= 3)
+            const delBtn = document.getElementById("deleteEngagementBtn");
+            if (delBtn) {
+                if (idx >= 3) {
+                    delBtn.style.display = "flex";
+                } else {
+                    delBtn.style.display = "none";
+                }
+            }
+
+            renderEngagementRules();
+            updateFunctionSupplies();
+            renderEngagementPresetBoxes();
+        }
+
+        function renderEngagementPresetBoxes() {
+            const container = document.getElementById("engagementPresetBoxes");
+            if (!container) return;
+            container.innerHTML = "";
+            for (let i = 0; i < engagementCountPresets.length; i++) {
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = "nav-btn" + (i === activePresetIndex ? " active" : "");
+                btn.textContent = "Preset " + (i + 1);
+                btn.style.flex = "1 0 30%";
+                btn.style.fontSize = "12px";
+                btn.style.padding = "6px 8px";
+                btn.addEventListener("click", () => applyEngagementPreset(i));
+                container.appendChild(btn);
+            }
+        }
+
+        function renderEngagementRules() {
+            const container = document.getElementById("engagementRulesContainer");
+            container.innerHTML = `
+                <div style="font-weight: 700; font-size: 12px;">Function</div>
+                <div style="font-weight: 700; font-size: 12px;">Count</div>
+                <div style="font-weight: 700; font-size: 12px;">Fraction</div>
+                <div style="font-weight: 700; font-size: 12px;">Passengers</div>
+            `;
+
+            Object.keys(DEFAULT_COUNTS).forEach(key => {
+                const label = document.createElement("div");
+                label.textContent = key;
+                label.style.fontSize = "12px";
+                label.style.fontWeight = "600";
+                
+                const countInput = document.createElement("input");
+                countInput.type = "number";
+                countInput.value = activeCounts[key];
+                countInput.style.width = "100%";
+                countInput.style.padding = "4px";
+                countInput.style.borderRadius = "4px";
+                countInput.style.border = "1px solid #ccc";
+                countInput.onchange = (e) => {
+                    activeCounts[key] = Number(e.target.value);
+                    updateFunctionSupplies();
+                };
+
+                const multInput = document.createElement("input");
+                multInput.type = "number";
+                multInput.step = "0.01";
+                multInput.value = activeMultipliers[key];
+                multInput.style.width = "100%";
+                multInput.style.padding = "4px";
+                multInput.style.borderRadius = "4px";
+                multInput.style.border = "1px solid #ccc";
+                multInput.onchange = (e) => {
+                    activeMultipliers[key] = Number(e.target.value);
+                    updateFunctionSupplies();
+                };
+
+                const paxInput = document.createElement("input");
+                paxInput.type = "number";
+                paxInput.step = "1";
+                paxInput.min = "1";
+                paxInput.value = activePassengers[key] ?? 1;
+                paxInput.style.width = "100%";
+                paxInput.style.padding = "4px";
+                paxInput.style.borderRadius = "4px";
+                paxInput.style.border = "1px solid #ccc";
+                if (key !== "LOAD CONTROL") {
+                    paxInput.disabled = true;
+                    paxInput.style.backgroundColor = "#f9fafb";
+                }
+                paxInput.onchange = (e) => {
+                    activePassengers[key] = Number(e.target.value);
+                    updateFunctionSupplies();
+                };
+
+                container.appendChild(label);
+                container.appendChild(countInput);
+                container.appendChild(multInput);
+                container.appendChild(paxInput);
+            });
+        }
+
+        document.getElementById("resetEngagementBtn").addEventListener("click", () => {
+            activeCounts = { ...DEFAULT_COUNTS };
+            activeMultipliers = { ...DEFAULT_MULTIPLIER };
+            activePassengers = { ...DEFAULT_PASSENGERS };
+            activePresetIndex = null;
+            renderEngagementRules();
+            updateFunctionSupplies();
+            renderEngagementPresetBoxes();
+        });
+
+        document.getElementById("saveEngagementBtn").addEventListener("click", () => {
+            const newCounts = { ...activeCounts };
+            const newMults = { ...activeMultipliers };
+            const newPaxs = { ...activePassengers };
+            
+            engagementCountPresets.push(newCounts);
+            engagementMultiplierPresets.push(newMults);
+            engagementPassengerPresets.push(newPaxs);
+            
+            // Save to localStorage
+            try {
+                const saved = localStorage.getItem("myCustomPresets");
+                let parsed = [];
+                if (saved) {
+                    parsed = JSON.parse(saved);
+                }
+                if (!Array.isArray(parsed)) parsed = [];
+                parsed.push({ counts: newCounts, mults: newMults, paxs: newPaxs });
+                safeStore("myCustomPresets", parsed);
+            } catch(e) {
+                console.warn("Could not save preset", e);
+            }
+            
+            renderEngagementPresetBoxes();
+            // Select the new preset
+            applyEngagementPreset(engagementCountPresets.length - 1);
+        });
+
+        document.getElementById("deleteEngagementBtn").addEventListener("click", () => {
+            if (activePresetIndex === null || activePresetIndex < 3) return;
+            
+            // Remove from arrays
+            engagementCountPresets.splice(activePresetIndex, 1);
+            engagementMultiplierPresets.splice(activePresetIndex, 1);
+            engagementPassengerPresets.splice(activePresetIndex, 1);
+            
+            // Re-save custom presets to localStorage
+            // The custom presets start at index 3.
+            // After splicing, the remaining custom presets are from index 3 onwards.
+            const customCounts = engagementCountPresets.slice(3);
+            const customMults = engagementMultiplierPresets.slice(3);
+            const customPaxs = engagementPassengerPresets.slice(3);
+            
+            const toSave = customCounts.map((c, i) => ({
+                counts: c,
+                mults: customMults[i],
+                paxs: customPaxs[i]
+            }));
+            
+            safeStore("myCustomPresets", toSave);
+            
+            // Reset active preset
+            activePresetIndex = null;
+            document.getElementById("deleteEngagementBtn").style.display = "none";
+            
+            // Re-render
+            renderEngagementPresetBoxes();
+            
+            // Optionally reset to defaults or just leave as is?
+            // Let's reset to defaults for clarity
+            activeCounts = { ...DEFAULT_COUNTS };
+            activeMultipliers = { ...DEFAULT_MULTIPLIER };
+            activePassengers = { ...DEFAULT_PASSENGERS };
+            renderEngagementRules();
+            updateFunctionSupplies();
+        });
+
+        window.addEventListener("DOMContentLoaded", () => {
+            generateEngagementPresets();
+            renderEngagementRules();
+            renderEngagementPresetBoxes();
+        });
+
 
         function updateFunctionSupplies() {
             if (!finalAll) {
@@ -1193,16 +1481,19 @@
             shifts.forEach((shiftKey, idx) => {
                 const maxVal = Number(shiftMax[idx]) || 0;
                 Object.keys(functionSupplyEls[shiftKey]).forEach(funcName => {
-                    let count = Number(functionCounts[funcName]) || 1;
+                    let count = Number(activeCounts[funcName]) || 1;
                     if (funcName === "BOARDING") count = boardingCount;
                     if (funcName === "SERVICE AGENT") count = serviceAgentCount;
                     if (funcName === "BOARDING + SERVICE AGENT") count = combinedCount;
                     
                     let perShift;
+                    const mult = Number(activeMultipliers[funcName]) || 1.48;
+                    const pax = Number(activePassengers[funcName]) || 5;
+
                     if (funcName === "LOAD CONTROL") {
-                        perShift = Math.round((maxVal * count / 5) * 1.48);
+                        perShift = Math.round((maxVal * count / pax) * mult);
                     } else {
-                        perShift = Math.round(maxVal * count);
+                        perShift = Math.round(maxVal * count * mult);
                     }
 
                     setFunctionSupply(shiftKey, funcName, Number.isFinite(perShift) ? perShift : "-");
@@ -1215,12 +1506,17 @@
                 const base = totalsRawByFunc[funcName];
                 
                 let totalVal;
-                if (funcName === "LOAD CONTROL") {
-                    totalVal = base; // Already calculated per shift
-                } else {
-                    const mult = funcName.includes("GW") ? 1.17 : 1.48;
-                    totalVal = Math.round(base * mult);
-                }
+                // For function totals, we sum the per-shift values directly?
+                // The original code re-multiplied by 1.17 or 1.48. 
+                // Now that we apply multipliers per shift, the total should just be the sum.
+                // However, the original code had:
+                // if (funcName === "LOAD CONTROL") totalVal = base;
+                // else totalVal = Math.round(base * mult); 
+                // This implies 'base' (totalsRawByFunc) in original code was just sum of (maxVal * count).
+                // But now 'base' in our new loop includes the multiplier already!
+                // So we should just use 'base' directly.
+                
+                totalVal = base;
 
                 if (!Number.isFinite(totalVal) || totalVal <= 0) {
                     el.textContent = "-";
@@ -1952,3 +2248,4 @@
 </body>
 
 </html>
+

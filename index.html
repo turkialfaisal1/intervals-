@@ -1188,6 +1188,7 @@
         let engagementCountPresets = [];
         let engagementMultiplierPresets = [];
         let engagementPassengerPresets = [];
+        let engagementPresetNames = [];
         let activePresetIndex = null;
 
         function randomInRange(min, max) {
@@ -1204,6 +1205,7 @@
             engagementCountPresets = [];
             engagementMultiplierPresets = [];
             engagementPassengerPresets = [];
+            engagementPresetNames = [];
             const keys = Object.keys(DEFAULT_COUNTS);
             // Generate 3 random presets
             for (let i = 0; i < 3; i++) {
@@ -1224,6 +1226,7 @@
                 engagementCountPresets.push(counts);
                 engagementMultiplierPresets.push(mults);
                 engagementPassengerPresets.push(paxs);
+                engagementPresetNames.push("Preset " + (i + 1));
             }
             // Load saved presets
             try {
@@ -1235,6 +1238,7 @@
                             engagementCountPresets.push(p.counts);
                             engagementMultiplierPresets.push(p.mults);
                             engagementPassengerPresets.push(p.paxs);
+                            engagementPresetNames.push(p.name || "Custom Preset");
                         });
                     }
                 }
@@ -1275,7 +1279,7 @@
                 const btn = document.createElement("button");
                 btn.type = "button";
                 btn.className = "nav-btn" + (i === activePresetIndex ? " active" : "");
-                btn.textContent = "Preset " + (i + 1);
+                btn.textContent = engagementPresetNames[i] || ("Preset " + (i + 1));
                 btn.style.flex = "1 0 30%";
                 btn.style.fontSize = "12px";
                 btn.style.padding = "6px 8px";
@@ -1383,6 +1387,7 @@
             engagementCountPresets.push(newCounts);
             engagementMultiplierPresets.push(newMults);
             engagementPassengerPresets.push(newPaxs);
+            engagementPresetNames.push(name);
             
             // Save to localStorage
             try {
@@ -1422,6 +1427,7 @@
             engagementCountPresets.splice(activePresetIndex, 1);
             engagementMultiplierPresets.splice(activePresetIndex, 1);
             engagementPassengerPresets.splice(activePresetIndex, 1);
+            engagementPresetNames.splice(activePresetIndex, 1);
             
             // Re-save custom presets to localStorage
             // The custom presets start at index 3.

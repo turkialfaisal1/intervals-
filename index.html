@@ -664,6 +664,13 @@
         Filters
     </button>
 
+    <button id="loginStatusBtn" class="filter-trigger-btn" style="top: 80px; background: linear-gradient(145deg, #64748b 0%, #475569 100%); box-shadow: 0 4px 12px rgba(100, 116, 139, 0.4);">
+        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="vertical-align: middle; margin-right: 8px;">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+        </svg>
+        Admin Login
+    </button>
+
     <div class="card">
         <div class="row">
             <div>
@@ -977,6 +984,9 @@
                         <div style="font-weight: 700; font-size: 12px;">Count</div>
                         <div style="font-weight: 700; font-size: 12px;">Fraction</div>
                         <div style="font-weight: 700; font-size: 12px;">Passengers</div>
+                    </div>
+                    <div style="margin-top: 8px;">
+                        <input type="text" id="presetNameInput" placeholder="Preset Name (e.g., Weekend Shift)" style="width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px;">
                     </div>
                     <div style="display: flex; gap: 8px; margin-top: 8px;">
                         <button id="resetEngagementBtn" class="nav-btn" style="flex: 1; text-align: center; justify-content: center; padding: 6px 4px;">
@@ -1344,12 +1354,28 @@
             activeMultipliers = { ...DEFAULT_MULTIPLIER };
             activePassengers = { ...DEFAULT_PASSENGERS };
             activePresetIndex = null;
+            document.getElementById("presetNameInput").value = "";
             renderEngagementRules();
             updateFunctionSupplies();
             renderEngagementPresetBoxes();
         });
 
         document.getElementById("saveEngagementBtn").addEventListener("click", () => {
+            // Check Admin
+            const role = localStorage.getItem('userRole');
+            if (role !== 'admin') {
+                alert("Only Admins can save new presets.");
+                return;
+            }
+
+            const nameInput = document.getElementById("presetNameInput");
+            const name = nameInput.value.trim();
+            
+            if (!name) {
+                alert("Please enter a name for the preset.");
+                return;
+            }
+
             const newCounts = { ...activeCounts };
             const newMults = { ...activeMultipliers };
             const newPaxs = { ...activePassengers };
@@ -1366,7 +1392,7 @@
                     parsed = JSON.parse(saved);
                 }
                 if (!Array.isArray(parsed)) parsed = [];
-                parsed.push({ counts: newCounts, mults: newMults, paxs: newPaxs });
+                parsed.push({ name: name, counts: newCounts, mults: newMults, paxs: newPaxs });
                 safeStore("myCustomPresets", parsed);
             } catch(e) {
                 console.warn("Could not save preset", e);
@@ -1375,11 +1401,23 @@
             renderEngagementPresetBoxes();
             // Select the new preset
             applyEngagementPreset(engagementCountPresets.length - 1);
+            
+            // Clear input
+            nameInput.value = "";
         });
 
         document.getElementById("deleteEngagementBtn").addEventListener("click", () => {
+            // Check Admin
+            const role = localStorage.getItem('userRole');
+            if (role !== 'admin') {
+                alert("Only Admins can delete presets.");
+                return;
+            }
+
             if (activePresetIndex === null || activePresetIndex < 3) return;
             
+            if (!confirm("Are you sure you want to delete this preset?")) return;
+
             // Remove from arrays
             engagementCountPresets.splice(activePresetIndex, 1);
             engagementMultiplierPresets.splice(activePresetIndex, 1);
@@ -1392,28 +1430,32 @@
             const customMults = engagementMultiplierPresets.slice(3);
             const customPaxs = engagementPassengerPresets.slice(3);
             
-            const toSave = customCounts.map((c, i) => ({
-                counts: c,
-                mults: customMults[i],
-                paxs: customPaxs[i]
-            }));
+            // We need to reconstruct the objects with names (names are not in the separate arrays, but we can assume order)
+            // Actually, we should store names in the separate arrays or a separate name array.
+            // Let's reload from localStorage and delete by index to be safe, or introduce a name array.
+            // Simplest fix: Just update localStorage with the new sliced arrays, assuming names are lost? No, we need names.
             
-            safeStore("myCustomPresets", toSave);
-            
-            // Reset active preset
+            // Better approach: Update the 'parsed' list directly
+            try {
+                const saved = localStorage.getItem("myCustomPresets");
+                let parsed = [];
+                if (saved) parsed = JSON.parse(saved);
+                if (Array.isArray(parsed)) {
+                    // The index in 'parsed' is (activePresetIndex - 3)
+                    const removeIdx = activePresetIndex - 3;
+                    if (removeIdx >= 0 && removeIdx < parsed.length) {
+                        parsed.splice(removeIdx, 1);
+                        safeStore("myCustomPresets", parsed);
+                    }
+                }
+            } catch(e) {
+                console.warn("Error updating custom presets", e);
+            }
+
+            renderEngagementPresetBoxes();
             activePresetIndex = null;
             document.getElementById("deleteEngagementBtn").style.display = "none";
-            
-            // Re-render
-            renderEngagementPresetBoxes();
-            
-            // Optionally reset to defaults or just leave as is?
-            // Let's reset to defaults for clarity
-            activeCounts = { ...DEFAULT_COUNTS };
-            activeMultipliers = { ...DEFAULT_MULTIPLIER };
-            activePassengers = { ...DEFAULT_PASSENGERS };
-            renderEngagementRules();
-            updateFunctionSupplies();
+            document.getElementById("resetEngagementBtn").click();
         });
 
         window.addEventListener("DOMContentLoaded", () => {
@@ -2243,9 +2285,31 @@
             }
         });
         
+        // Login Status Button Logic
+        const role = localStorage.getItem('userRole');
+        const loginBtn = document.getElementById('loginStatusBtn');
+        if (loginBtn) {
+            if (role === 'admin') {
+                loginBtn.innerHTML = `
+                    <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="vertical-align: middle; margin-right: 8px;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    Logout (Admin)
+                `;
+                loginBtn.style.background = 'linear-gradient(145deg, #ef4444 0%, #dc2626 100%)';
+                loginBtn.style.boxShadow = '0 4px 12px rgba(239, 68, 68, 0.4)';
+                loginBtn.onclick = () => {
+                    localStorage.removeItem('userRole');
+                    window.location.reload();
+                };
+            } else {
+                loginBtn.onclick = () => {
+                    window.location.href = 'login.html';
+                };
+            }
+        }
     </script>
 
 </body>
 
 </html>
-

@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Interval & Manpower Supply</title>
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --text: #0f172a;
+            --text-light: #64748b;
+            --primary: #16a34a;
+            --primary-dark: #15803d;
+            --surface: rgba(255, 255, 255, 0.95);
+            --border: #e2e8f0;
+            --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: url('Background1.png') no-repeat center center fixed;
+            background-size: cover;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text);
+        }
+
+        .login-wrapper {
+            animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            width: 100%;
+            max-width: 420px;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: var(--surface);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 48px 40px;
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            text-align: center;
+        }
+
+        .logo-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            box-shadow: 0 10px 20px rgba(22, 163, 74, 0.2);
+            color: white;
+        }
+
+        h1 {
+            margin: 0 0 12px;
+            font-size: 28px;
+            font-weight: 800;
+            color: #1e293b;
+            letter-spacing: -0.025em;
+        }
+
+        .subtitle {
+            color: var(--text-light);
+            font-size: 15px;
+            line-height: 1.5;
+            margin-bottom: 40px;
+        }
+
+        .input-group {
+            margin-bottom: 24px;
+            text-align: left;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            transition: color 0.2s;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 16px 14px 48px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-size: 15px;
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+            outline: none;
+            background: #f8fafc;
+            color: #334155;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.1);
+        }
+
+        input:focus + .input-icon {
+            color: var(--primary);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(145deg, #22c55e 0%, #16a34a 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.25);
+            margin-bottom: 16px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(34, 197, 94, 0.35);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #64748b;
+            font-weight: 600;
+            border: 1px solid transparent;
+        }
+
+        .btn-secondary:hover {
+            color: #334155;
+            background: rgba(0, 0, 0, 0.03);
+        }
+
+        .divider {
+            margin: 24px 0;
+            position: relative;
+            text-align: center;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 100%;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .divider span {
+            background: #fff; /* Fallback */
+            background: linear-gradient(to bottom, rgba(255,255,255,0.95), rgba(255,255,255,0.95));
+            padding: 0 16px;
+            color: #94a3b8;
+            font-size: 12px;
+            font-weight: 500;
+            position: relative;
+            z-index: 1;
+        }
+
+        .error-msg {
+            color: #ef4444;
+            font-size: 13px;
+            margin-top: 8px;
+            display: none;
+            font-weight: 500;
+            text-align: left;
+            padding-left: 4px;
+        }
+
+        .footer {
+            margin-top: 24px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
+            text-align: center;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-wrapper">
+        <div class="login-card">
+            <div class="logo-icon">
+                <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                </svg>
+            </div>
+            <h1>Welcome Back</h1>
+            <div class="subtitle">Sign in to access the Interval & Manpower Supply dashboard</div>
+
+            <div id="adminForm">
+                <div class="input-group">
+                    <label>Admin Password</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="password" placeholder="Enter your password">
+                        <svg class="input-icon" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                    </div>
+                    <div id="errorMsg" class="error-msg">
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="vertical-align: text-bottom; margin-right: 4px;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Incorrect password provided
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="loginAdmin()">Sign In as Admin</button>
+            </div>
+
+            <div class="divider">
+                <span>OR CONTINUE WITH</span>
+            </div>
+
+            <button class="btn btn-secondary" onclick="continueAsGuest()">Guest Access</button>
+        </div>
+        
+        <div class="footer">
+            &copy; 2024 Interval & Manpower Supply. All rights reserved.
+        </div>
+    </div>
+
+    <script>
+        function loginAdmin() {
+            const pass = document.getElementById('password').value;
+            const input = document.getElementById('password');
+            const err = document.getElementById('errorMsg');
+            
+            // Default password: admin
+            if (pass === 'admin') {
+                // Success animation
+                const btn = document.querySelector('.btn-primary');
+                btn.innerHTML = 'Signing in...';
+                btn.style.opacity = '0.8';
+                
+                setTimeout(() => {
+                    localStorage.setItem('userRole', 'admin');
+                    window.location.href = 'supply site.html';
+                }, 600);
+            } else {
+                // Shake animation for error
+                const card = document.querySelector('.login-card');
+                card.animate([
+                    { transform: 'translateX(0)' },
+                    { transform: 'translateX(-10px)' },
+                    { transform: 'translateX(10px)' },
+                    { transform: 'translateX(-10px)' },
+                    { transform: 'translateX(0)' }
+                ], {
+                    duration: 400,
+                    easing: 'ease-in-out'
+                });
+                
+                err.style.display = 'block';
+                input.style.borderColor = '#ef4444';
+                input.style.background = '#fef2f2';
+                input.focus();
+            }
+        }
+
+        function continueAsGuest() {
+            localStorage.setItem('userRole', 'guest');
+            window.location.href = 'supply site.html';
+        }
+
+        // Allow Enter key to submit
+        document.getElementById('password').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                loginAdmin();
+            }
+        });
+
+        // Reset error on input
+        document.getElementById('password').addEventListener('input', function() {
+            const err = document.getElementById('errorMsg');
+            if (err.style.display === 'block') {
+                err.style.display = 'none';
+                this.style.borderColor = '#e2e8f0';
+                this.style.background = '#f8fafc';
+            }
+        });
+    </script>
+</body>
+</html>

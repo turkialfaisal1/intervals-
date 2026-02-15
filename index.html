@@ -961,6 +961,14 @@
                         <div id="monthDD" class="ms-dropdown"></div>
                     </div>
                     <div>
+                        <label>Day</label>
+                        <div id="dayDD" class="ms-dropdown"></div>
+                    </div>
+                    <div>
+                        <label>Shift</label>
+                        <div id="shiftDD" class="ms-dropdown"></div>
+                    </div>
+                    <div>
                         <label>Local Airlines</label>
                         <div id="airlineLocalDD" class="ms-dropdown"></div>
                     </div>
@@ -974,6 +982,24 @@
                     </div>
                     <button id="genBtn" disabled style="display: none;">Generate Tables</button>
                 </div>
+            </div>
+
+            <div class="filter-section">
+                <h3>Shift Configuration</h3>
+                <div style="display:grid; grid-template-columns: 30px 1fr 1fr; gap:8px; align-items:center; font-size:12px; margin-bottom: 12px;">
+                    <div style="font-weight:600;">A</div>
+                    <input type="number" id="shiftA_start" placeholder="Start" min="0" max="23" style="width:100%; padding:4px; border:1px solid #ccc; border-radius:4px;">
+                    <input type="number" id="shiftA_end" placeholder="End" min="0" max="23" style="width:100%; padding:4px; border:1px solid #ccc; border-radius:4px;">
+                    
+                    <div style="font-weight:600;">B</div>
+                    <input type="number" id="shiftB_start" placeholder="Start" min="0" max="23" style="width:100%; padding:4px; border:1px solid #ccc; border-radius:4px;">
+                    <input type="number" id="shiftB_end" placeholder="End" min="0" max="23" style="width:100%; padding:4px; border:1px solid #ccc; border-radius:4px;">
+                    
+                    <div style="font-weight:600;">C</div>
+                    <input type="number" id="shiftC_start" placeholder="Start" min="0" max="23" style="width:100%; padding:4px; border:1px solid #ccc; border-radius:4px;">
+                    <input type="number" id="shiftC_end" placeholder="End" min="0" max="23" style="width:100%; padding:4px; border:1px solid #ccc; border-radius:4px;">
+                </div>
+                <button id="updateShiftsBtn" class="nav-btn" style="width:100%; text-align:center; justify-content:center; padding:8px; margin-top:0;">Update Shift Hours</button>
             </div>
 
             <div class="filter-section">
@@ -1014,6 +1040,30 @@
         let finalA = null;
         let finalD = null;
         let finalAll = null;
+
+        let shiftDefinitions = {
+            A: { start: 0, end: 7 },
+            B: { start: 8, end: 15 },
+            C: { start: 16, end: 23 }
+        };
+        try {
+            const savedShifts = localStorage.getItem("shiftDefinitions");
+            if (savedShifts) {
+                shiftDefinitions = JSON.parse(savedShifts);
+            }
+        } catch(e) { console.warn("Could not load shifts", e); }
+
+        function isHourInShift(h, start, end) {
+            h = Number(h);
+            start = Number(start);
+            end = Number(end);
+            if (start <= end) {
+                return h >= start && h <= end;
+            } else {
+                // Crosses midnight
+                return h >= start || h <= end;
+            }
+        }
 
         const HOURS = [...Array(24).keys()];
         const clean = x => (x ?? "").toString().trim();
@@ -1296,6 +1346,8 @@
                 <div style="font-weight: 700; font-size: 12px;">Fraction</div>
                 <div style="font-weight: 700; font-size: 12px;">Passengers</div>
             `;
+            container.style.gridTemplateColumns = "1fr 70px 70px 90px";
+            container.style.gap = "8px";
 
             Object.keys(DEFAULT_COUNTS).forEach(key => {
                 const label = document.createElement("div");
@@ -1539,9 +1591,9 @@
                     const pax = Number(activePassengers[funcName]) || 5;
 
                     if (funcName === "LOAD CONTROL") {
-                        perShift = Math.round((maxVal * count / pax) * mult);
+                        perShift = Math.round((maxVal * count / pax));
                     } else {
-                        perShift = Math.round(maxVal * count * mult);
+                        perShift = Math.round(maxVal * count);
                     }
 
                     setFunctionSupply(shiftKey, funcName, Number.isFinite(perShift) ? perShift : "-");
@@ -1552,19 +1604,9 @@
                 const el = functionTotalsEls[funcName];
                 if (!el) return;
                 const base = totalsRawByFunc[funcName];
+                const mult = Number(activeMultipliers[funcName]) || 1.48;
                 
-                let totalVal;
-                // For function totals, we sum the per-shift values directly?
-                // The original code re-multiplied by 1.17 or 1.48. 
-                // Now that we apply multipliers per shift, the total should just be the sum.
-                // However, the original code had:
-                // if (funcName === "LOAD CONTROL") totalVal = base;
-                // else totalVal = Math.round(base * mult); 
-                // This implies 'base' (totalsRawByFunc) in original code was just sum of (maxVal * count).
-                // But now 'base' in our new loop includes the multiplier already!
-                // So we should just use 'base' directly.
-                
-                totalVal = base;
+                let totalVal = Math.round(base * mult);
 
                 if (!Number.isFinite(totalVal) || totalVal <= 0) {
                     el.textContent = "-";
@@ -1714,11 +1756,11 @@
             return api;
         }
 
-        let ddStation, ddServiced, ddMonth, ddAirlineLocal, ddAirlineForeign, ddAirlineDedicated;
+        let ddStation, ddServiced, ddMonth, ddDay, ddShift, ddAirlineLocal, ddAirlineForeign, ddAirlineDedicated;
 
         function closeAllDropdowns() {
             [
-                ddStation, ddServiced, ddMonth,
+                ddStation, ddServiced, ddMonth, ddDay, ddShift,
                 ddAirlineLocal, ddAirlineForeign, ddAirlineDedicated
             ].forEach(dd => dd && dd.close());
         }
@@ -1798,6 +1840,8 @@
             ddLocation = createMultiDropdown("locationDD", "Select Location", generateTables);
             ddServiced = createMultiDropdown("servicedDD", "Select Serviced By", generateTables);
             ddMonth = createMultiDropdown("monthDD", "Select Month", generateTables);
+            ddDay = createMultiDropdown("dayDD", "Select Day", generateTables);
+            ddShift = createMultiDropdown("shiftDD", "Select Shift", generateTables);
             ddAirlineLocal = createMultiDropdown("airlineLocalDD", "Local Airlines", generateTables);
             ddAirlineForeign = createMultiDropdown("airlineForeignDD", "Foreign Airlines", generateTables);
             ddAirlineDedicated = createMultiDropdown("airlineDedicatedDD", "Dedicated Teams", generateTables);
@@ -1805,7 +1849,37 @@
             ddStation.setItems(uniq(rows.map(r => r.Station)));
             ddLocation.setItems(uniq(rows.map(r => r.Location)));
             ddServiced.setItems(uniq(rows.map(r => r.ServicedBy)));
-            ddMonth.setItems(uniq(rows.map(r => r.Month)));
+            
+            // Sort months chronologically
+            const monthsOrder = {
+                "JAN": 1, "FEB": 2, "MAR": 3, "APR": 4, "MAY": 5, "JUN": 6,
+                "JUL": 7, "AUG": 8, "SEP": 9, "OCT": 10, "NOV": 11, "DEC": 12,
+                "JANUARY": 1, "FEBRUARY": 2, "MARCH": 3, "APRIL": 4, "MAY": 5, "JUNE": 6,
+                "JULY": 7, "AUGUST": 8, "SEPTEMBER": 9, "OCTOBER": 10, "NOVEMBER": 11, "DECEMBER": 12
+            };
+            
+            const uniqueMonths = [...new Set(rows.map(r => r.Month).filter(x => x))];
+            uniqueMonths.sort((a, b) => {
+                const ma = monthsOrder[a.toUpperCase()] || 99;
+                const mb = monthsOrder[b.toUpperCase()] || 99;
+                return ma - mb;
+            });
+            ddMonth.setItems(uniqueMonths);
+            
+            // Sort dates chronologically
+            const uniqueDates = [...new Set(rows.map(r => r.Date).filter(x => x))];
+            uniqueDates.sort((a, b) => {
+                const da = new Date(a);
+                const db = new Date(b);
+                if (!isNaN(da.getTime()) && !isNaN(db.getTime())) {
+                    return da - db;
+                }
+                return String(a).localeCompare(String(b));
+            });
+            ddDay.setItems(uniqueDates);
+
+            ddShift.setItems(["Shift A", "Shift B", "Shift C"]);
+
             const ALL = uniq(rows.map(r => r.Airline));
             const LOCAL = ["SV", "F3", "XV", "RX"];
             const FOREIGN = ALL.filter(a => !LOCAL.includes(a));
@@ -1820,6 +1894,8 @@
             const LO = uniq([...ddLocation.getSelected()].map(upper));
             const SV = uniq([...ddServiced.getSelected()].map(upper));
             const MO = uniq([...ddMonth.getSelected()].map(upper));
+            const DA = uniq([...ddDay.getSelected()].map(clean));
+            const SH = uniq([...ddShift.getSelected()]);
             const AI = uniq([
                 ...ddAirlineLocal.getSelected(),
                 ...ddAirlineForeign.getSelected(),
@@ -1831,6 +1907,16 @@
                 if (LO.length > 0 && !LO.includes(r.Location)) return false;
                 if (SV.length > 0 && !SV.includes(r.ServicedBy)) return false;
                 if (MO.length > 0 && !MO.includes(r.Month)) return false;
+                if (DA.length > 0 && !DA.includes(r.Date)) return false;
+                if (SH.length > 0) {
+                    const h = Number(r.Hour);
+                    let matched = false;
+                    if (SH.includes("Shift A") && isHourInShift(h, shiftDefinitions.A.start, shiftDefinitions.A.end)) matched = true;
+                    if (!matched && SH.includes("Shift B") && isHourInShift(h, shiftDefinitions.B.start, shiftDefinitions.B.end)) matched = true;
+                    if (!matched && SH.includes("Shift C") && isHourInShift(h, shiftDefinitions.C.start, shiftDefinitions.C.end)) matched = true;
+                    
+                    if (!matched) return false;
+                }
                 if (AI.length > 0 && !AI.includes(r.Airline)) return false;
                 return true;
             });
@@ -1911,14 +1997,19 @@
             if (!table || !table.rows || table.rows.length === 0) return null;
             // Use the first data row (labeled "Hour") values across 24 hours
             const row0 = table.rows[0].slice(1);
-            const ranges = [
-                [0, 7],   // Shift A: 0-7
-                [8, 15],  // Shift B: 8-15
-                [16, 23], // Shift C: 16-23
-            ];
-            return ranges.map(([start, end]) => {
-                const slice = row0.slice(start, end + 1);
-                return slice.length ? Math.max(...slice) : 0;
+            
+            const shifts = ["A", "B", "C"];
+            return shifts.map(key => {
+                const def = shiftDefinitions[key];
+                let maxVal = 0;
+                // Since ranges can be non-contiguous (wrap midnight) or arbitrary,
+                // we iterate all 24 hours and check membership.
+                for (let h = 0; h < 24; h++) {
+                    if (isHourInShift(h, def.start, def.end)) {
+                        if (row0[h] > maxVal) maxVal = row0[h];
+                    }
+                }
+                return maxVal;
             });
         }
 
@@ -1952,14 +2043,18 @@
   `;
 
             if (shiftMax) {
+                const defA = shiftDefinitions.A;
+                const defB = shiftDefinitions.B;
+                const defC = shiftDefinitions.C;
+
                 html += `
     <div style="margin-top:12px;">
       <table style="width:100%; border-collapse:separate; border-spacing:0; border:1px solid #334155; border-radius:12px; overflow:hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
         <thead>
           <tr style="background: linear-gradient(145deg, #1e293b 0%, #334155 100%); color:#ffffff; text-transform:uppercase; letter-spacing:0.5px; font-size:12px;">
-            <th style="padding:10px; border-right:1px solid #334155;">Shift A (0-7)</th>
-            <th style="padding:10px; border-right:1px solid #334155;">Shift B (8-15)</th>
-            <th style="padding:10px;">Shift C (16-23)</th>
+            <th style="padding:10px; border-right:1px solid #334155;">Shift A (${defA.start}-${defA.end})</th>
+            <th style="padding:10px; border-right:1px solid #334155;">Shift B (${defB.start}-${defB.end})</th>
+            <th style="padding:10px;">Shift C (${defC.start}-${defC.end})</th>
           </tr>
         </thead>
         <tbody>
@@ -2264,6 +2359,53 @@
         if(openBtn) openBtn.addEventListener("click", openDrawer);
         if(closeBtn) closeBtn.addEventListener("click", closeDrawer);
         if(overlay) overlay.addEventListener("click", closeDrawer);
+
+        // Shift Configuration Logic
+        function initShiftConfig() {
+            const getEl = (id) => document.getElementById(id);
+            const sA_s = getEl("shiftA_start");
+            const sA_e = getEl("shiftA_end");
+            const sB_s = getEl("shiftB_start");
+            const sB_e = getEl("shiftB_end");
+            const sC_s = getEl("shiftC_start");
+            const sC_e = getEl("shiftC_end");
+            
+            if(!sA_s) return; // safety
+
+            // Populate inputs
+            sA_s.value = shiftDefinitions.A.start;
+            sA_e.value = shiftDefinitions.A.end;
+            sB_s.value = shiftDefinitions.B.start;
+            sB_e.value = shiftDefinitions.B.end;
+            sC_s.value = shiftDefinitions.C.start;
+            sC_e.value = shiftDefinitions.C.end;
+
+            getEl("updateShiftsBtn").addEventListener("click", () => {
+                const v = (el) => parseInt(el.value);
+                const vals = [
+                    v(sA_s), v(sA_e), v(sB_s), v(sB_e), v(sC_s), v(sC_e)
+                ];
+
+                // Basic validation (0-23)
+                if (!vals.every(n => !isNaN(n) && n >= 0 && n <= 23)) {
+                    alert("Please enter valid hours (0-23)");
+                    return;
+                }
+
+                shiftDefinitions.A = { start: vals[0], end: vals[1] };
+                shiftDefinitions.B = { start: vals[2], end: vals[3] };
+                shiftDefinitions.C = { start: vals[4], end: vals[5] };
+
+                safeStore("shiftDefinitions", shiftDefinitions);
+                
+                // Refresh if data loaded
+                if (typeof generateTables === "function" && rows.length > 0) {
+                    generateTables();
+                }
+                alert("Shift hours updated!");
+            });
+        }
+        initShiftConfig();
 
         // TOGGLE LOGIC for Intervals
         document.getElementById("toggleIntervalsBtn").addEventListener("click", () => {

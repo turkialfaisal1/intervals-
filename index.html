@@ -721,7 +721,7 @@
             </button>
         </div>
         <div class="functions-display">
-            <div class="functions-grid">
+            <div class="functions-grid" id="functionsTotalGrid">
                 <div class="function-card">
                     <div class="function-label">TRC</div>
                     <div class="function-value empty" id="supplyTotalTRC">-</div>
@@ -774,7 +774,7 @@
         <div class="card" style="margin-top: 12px;">
             <h2>Function Supply - Shift A</h2>
             <div class="functions-display">
-                <div class="functions-grid">
+                <div class="functions-grid" id="functionsShiftAGrid">
                     <div class="function-card">
                         <div class="function-label">TRC</div>
                         <div class="function-value" id="supplyTRC">-</div>
@@ -826,7 +826,7 @@
         <div class="card" style="margin-top: 12px;">
             <h2>Function Supply - Shift B</h2>
             <div class="functions-display">
-                <div class="functions-grid">
+                <div class="functions-grid" id="functionsShiftBGrid">
                     <div class="function-card">
                         <div class="function-label">TRC</div>
                         <div class="function-value" id="supplyTRC_B">-</div>
@@ -878,7 +878,7 @@
         <div class="card" style="margin-top: 12px;">
             <h2>Function Supply - Shift C</h2>
             <div class="functions-display">
-                <div class="functions-grid">
+                <div class="functions-grid" id="functionsShiftCGrid">
                     <div class="function-card">
                         <div class="function-label">TRC</div>
                         <div class="function-value" id="supplyTRC_C">-</div>
@@ -1009,10 +1009,21 @@
                         <div style="font-weight: 700; font-size: 12px;">Function</div>
                         <div style="font-weight: 700; font-size: 12px;">Count</div>
                         <div style="font-weight: 700; font-size: 12px;">Fraction</div>
-                        <div style="font-weight: 700; font-size: 12px;">Passengers</div>
+                        <div style="font-weight: 700; font-size: 12px;">Flights</div>
                     </div>
                     <div style="margin-top: 8px;">
                         <input type="text" id="presetNameInput" placeholder="Preset Name (e.g., Weekend Shift)" style="width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px;">
+                    </div>
+                    <div style="margin-top: 8px; display: grid; grid-template-columns: 1.4fr 0.6fr 0.6fr 0.6fr; gap: 8px; align-items: center;">
+                        <input type="text" id="newFunctionName" placeholder="New function name" style="width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px;">
+                        <input type="number" id="newFunctionCount" placeholder="Count" style="width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px;">
+                        <input type="number" id="newFunctionFraction" placeholder="Fraction" step="0.01" style="width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px;">
+                        <input type="number" id="newFunctionFlights" placeholder="Flights" min="1" step="1" style="width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px;">
+                    </div>
+                    <div style="margin-top: 6px;">
+                        <button id="addFunctionBtn" class="nav-btn" style="width: 100%; justify-content: center; padding: 6px 4px; font-size: 12px;">
+                            Add Function
+                        </button>
                     </div>
                     <div style="display: flex; gap: 8px; margin-top: 8px;">
                         <button id="resetEngagementBtn" class="nav-btn" style="flex: 1; text-align: center; justify-content: center; padding: 6px 4px;">
@@ -1142,6 +1153,41 @@
             "BOARDING + SERVICE AGENT": document.getElementById("supplyTotalBOARDINGSERVICE"),
         };
 
+        function ensureFunctionCards(funcName) {
+            if (functionTotalsEls[funcName]) return;
+            const totalGrid = document.getElementById("functionsTotalGrid");
+            const gridA = document.getElementById("functionsShiftAGrid");
+            const gridB = document.getElementById("functionsShiftBGrid");
+            const gridC = document.getElementById("functionsShiftCGrid");
+            if (!totalGrid || !gridA || !gridB || !gridC) return;
+
+            function createCard(grid, labelText) {
+                const card = document.createElement("div");
+                card.className = "function-card";
+                const label = document.createElement("div");
+                label.className = "function-label";
+                label.textContent = labelText;
+                const value = document.createElement("div");
+                value.className = "function-value empty";
+                value.textContent = "-";
+                card.appendChild(label);
+                card.appendChild(value);
+                grid.appendChild(card);
+                return value;
+            }
+
+            const totalEl = createCard(totalGrid, funcName);
+            functionTotalsEls[funcName] = totalEl;
+
+            const gridsByShift = { A: gridA, B: gridB, C: gridC };
+            Object.keys(gridsByShift).forEach(shiftKey => {
+                const grid = gridsByShift[shiftKey];
+                const valueEl = createCard(grid, funcName);
+                if (!functionSupplyEls[shiftKey]) functionSupplyEls[shiftKey] = {};
+                functionSupplyEls[shiftKey][funcName] = valueEl;
+            });
+        }
+
         let operationsDB = [];
 
         async function loadOperationsDB() {
@@ -1231,6 +1277,42 @@
             "SERVICE AGENT": 1,
             "BOARDING + SERVICE AGENT": 1,
         };
+        const BASE_FUNCTION_KEYS = Object.keys(DEFAULT_COUNTS);
+
+        function deleteCustomFunction(name) {
+            if (BASE_FUNCTION_KEYS.includes(name)) return;
+
+            delete DEFAULT_COUNTS[name];
+            delete DEFAULT_MULTIPLIER[name];
+            delete DEFAULT_PASSENGERS[name];
+
+            delete activeCounts[name];
+            delete activeMultipliers[name];
+            delete activePassengers[name];
+
+            ["A", "B", "C"].forEach(shiftKey => {
+                const el = functionSupplyEls[shiftKey]?.[name];
+                if (el) {
+                    const card = el.closest(".function-card");
+                    if (card && card.parentElement) {
+                        card.parentElement.removeChild(card);
+                    }
+                    delete functionSupplyEls[shiftKey][name];
+                }
+            });
+
+            const totalEl = functionTotalsEls[name];
+            if (totalEl) {
+                const card = totalEl.closest(".function-card");
+                if (card && card.parentElement) {
+                    card.parentElement.removeChild(card);
+                }
+                delete functionTotalsEls[name];
+            }
+
+            renderEngagementRules();
+            updateFunctionSupplies();
+        }
         
         let activeMultipliers = { ...DEFAULT_MULTIPLIER };
         let activeCounts = { ...DEFAULT_COUNTS };
@@ -1344,17 +1426,48 @@
                 <div style="font-weight: 700; font-size: 12px;">Function</div>
                 <div style="font-weight: 700; font-size: 12px;">Count</div>
                 <div style="font-weight: 700; font-size: 12px;">Fraction</div>
-                <div style="font-weight: 700; font-size: 12px;">Passengers</div>
+                <div style="font-weight: 700; font-size: 12px;">Flights</div>
             `;
             container.style.gridTemplateColumns = "1fr 70px 70px 90px";
             container.style.gap = "8px";
 
             Object.keys(DEFAULT_COUNTS).forEach(key => {
+                ensureFunctionCards(key);
                 const label = document.createElement("div");
                 label.textContent = key;
                 label.style.fontSize = "12px";
                 label.style.fontWeight = "600";
-                
+                label.style.position = "relative";
+                if (!BASE_FUNCTION_KEYS.includes(key)) {
+                    const delBtn = document.createElement("button");
+                    delBtn.type = "button";
+                    delBtn.textContent = "✕";
+                    delBtn.style.position = "absolute";
+                    delBtn.style.right = "2px";
+                    delBtn.style.top = "50%";
+                    delBtn.style.transform = "translateY(-50%)";
+                    delBtn.style.border = "none";
+                    delBtn.style.background = "transparent";
+                    delBtn.style.color = "#ef4444";
+                    delBtn.style.fontSize = "10px";
+                    delBtn.style.cursor = "pointer";
+                    delBtn.style.padding = "0 2px";
+                    delBtn.style.opacity = "0";
+                    delBtn.style.transition = "opacity 0.15s ease";
+                    label.addEventListener("mouseenter", () => {
+                        delBtn.style.opacity = "1";
+                    });
+                    label.addEventListener("mouseleave", () => {
+                        delBtn.style.opacity = "0";
+                    });
+                    delBtn.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        deleteCustomFunction(key);
+                    });
+                    label.appendChild(delBtn);
+                }
+
                 const countInput = document.createElement("input");
                 countInput.type = "number";
                 countInput.value = activeCounts[key];
@@ -1389,10 +1502,6 @@
                 paxInput.style.padding = "4px";
                 paxInput.style.borderRadius = "4px";
                 paxInput.style.border = "1px solid #ccc";
-                if (key !== "LOAD CONTROL") {
-                    paxInput.disabled = true;
-                    paxInput.style.backgroundColor = "#f9fafb";
-                }
                 paxInput.onchange = (e) => {
                     activePassengers[key] = Number(e.target.value);
                     updateFunctionSupplies();
@@ -1403,6 +1512,7 @@
                 container.appendChild(multInput);
                 container.appendChild(paxInput);
             });
+
         }
 
         document.getElementById("resetEngagementBtn").addEventListener("click", () => {
@@ -1516,6 +1626,55 @@
             document.getElementById("resetEngagementBtn").click();
         });
 
+        const addFunctionBtn = document.getElementById("addFunctionBtn");
+        if (addFunctionBtn) {
+            addFunctionBtn.addEventListener("click", () => {
+                const role = localStorage.getItem('userRole');
+                if (role !== 'admin') {
+                    alert("Only Admins can add new functions.");
+                    return;
+                }
+
+                const nameInput = document.getElementById("newFunctionName");
+                const countInput = document.getElementById("newFunctionCount");
+                const fractionInput = document.getElementById("newFunctionFraction");
+                const flightsInput = document.getElementById("newFunctionFlights");
+
+                const name = nameInput.value.trim();
+                if (!name) {
+                    alert("Please enter a function name.");
+                    return;
+                }
+
+                const countVal = Number(countInput.value);
+                const multVal = Number(fractionInput.value);
+                const flightsVal = Number(flightsInput.value);
+
+                const count = Number.isFinite(countVal) && countVal > 0 ? countVal : 1;
+                const mult = Number.isFinite(multVal) && multVal > 0 ? multVal : 1.0;
+                const flights = Number.isFinite(flightsVal) && flightsVal > 0 ? flightsVal : 1;
+
+                DEFAULT_COUNTS[name] = count;
+                DEFAULT_MULTIPLIER[name] = mult;
+                DEFAULT_PASSENGERS[name] = flights;
+
+                activeCounts[name] = count;
+                activeMultipliers[name] = mult;
+                activePassengers[name] = flights;
+
+                ensureFunctionCards(name);
+
+                nameInput.value = "";
+                countInput.value = "";
+                fractionInput.value = "";
+                flightsInput.value = "";
+
+                renderEngagementRules();
+                updateFunctionSupplies();
+                renderEngagementPresetBoxes();
+            });
+        }
+
         window.addEventListener("DOMContentLoaded", () => {
             generateEngagementPresets();
             renderEngagementRules();
@@ -1565,19 +1724,7 @@
             setSeparateVisibility(!foreignOrDedicatedPresent);
             setCombinedVisibility(foreignOrDedicatedPresent);
 
-            const totalsRawByFunc = {
-                "TRC": 0,
-                "BAG REP": 0,
-                "TECH OP": 0,
-                "DRIVERS": 0,
-                "BAG OP": 0,
-                "LOAD CONTROL": 0,
-                "RAMP GW": 0,
-                "BASEMENT GW": 0,
-                "BOARDING": 0,
-                "SERVICE AGENT": 0,
-                "BOARDING + SERVICE AGENT": 0,
-            };
+            const totalsRawByFunc = {};
             shifts.forEach((shiftKey, idx) => {
                 const maxVal = Number(shiftMax[idx]) || 0;
                 Object.keys(functionSupplyEls[shiftKey]).forEach(funcName => {
@@ -1597,6 +1744,7 @@
                     }
 
                     setFunctionSupply(shiftKey, funcName, Number.isFinite(perShift) ? perShift : "-");
+                    if (!Number.isFinite(totalsRawByFunc[funcName])) totalsRawByFunc[funcName] = 0;
                     totalsRawByFunc[funcName] += Number.isFinite(perShift) ? perShift : 0;
                 });
             });
